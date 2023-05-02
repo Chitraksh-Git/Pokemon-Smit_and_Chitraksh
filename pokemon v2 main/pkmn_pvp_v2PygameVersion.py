@@ -5,42 +5,48 @@ import pandas as pd
 import random as rnd
 import sys 
 
+
 pygame.init()
 
 #Load Dataframes
-pkmn_stats = pd.read_csv('csv/pokemon_stats.csv') #Dataframe of all (10 included) Pokemon with HP,Attack,Defense,Type and Moves.
+pkmn_stats = pd.read_csv('pokemon v2 main/csv/pokemon_stats.csv') #Dataframe of all (10 included) Pokemon with HP,Attack,Defense,Type and Moves.
 pkmn_stats.loc['Choose Pokemon','Name']='Choose Pokemon'
-type_matchups = pd.read_csv('csv/type_matchups.csv').T #Stores all 12 types(included), with their weaknesses,resistances and immunities. 
+type_matchups = pd.read_csv('pokemon v2 main/csv/type_matchups.csv').T #Stores all 12 types(included), with their weaknesses,resistances and immunities. 
 type_matchups.columns = ["weaknesses","resistances","immunities"] #assigns columns after transposing it
-moves_df=pd.read_csv('csv/moves.csv') #stores moves with type, damage, and other parameters
+moves_df=pd.read_csv('pokemon v2 main/csv/moves.csv') #stores moves with type, damage, and other parameters
 moves_df.index=moves_df.loc[:,'Name'] 
 
 #Display
-WIDTH,HEIGHT = 800,600
+WIDTH,HEIGHT = 1000,700
 DISPLAY_SIZE = (WIDTH,HEIGHT)
 DISPLAY = pygame.display.set_mode(DISPLAY_SIZE)
 pygame.display.set_caption("POKEMON GAME")
 
 #Fonts
-font60 = pygame.font.Font("fonts/Pixeltype.ttf",60)
-font100 = pygame.font.Font("fonts/Pixeltype.ttf",100)
+font60 = pygame.font.Font("pokemon v2 main/fonts/Pixeltype.ttf",60)
+font100 = pygame.font.Font("pokemon v2 main/fonts/Pixeltype.ttf",100)
 
 #Colors
 WHITE = (255, 255, 255)
 YELLOW = (255, 255, 0)
+GREEN = (0, 255, 0)
+BLACK = (0, 0, 0)
 
 #FPS
 FPS = 60
 CLOCK = pygame.time.Clock()
 
 #START SCREEN
-pkmn_background = pygame.image.load("assets/gengar_pixels.jpeg").convert_alpha() #Pixel Art of a Gengar for the Start Screen, Spooky... 
+pkmn_background = pygame.image.load("pokemon v2 main/assets/gengar_pixels.jpeg").convert_alpha() #Pixel Art of a Gengar for the Start Screen, Spooky... 
 pkmn_background = pygame.transform.scale(pkmn_background, DISPLAY_SIZE)
-pkmn_logo = pygame.image.load("assets/pkmn_logo.png").convert_alpha() #Transparent, Black Pokemon Logo
+pkmn_logo = pygame.image.load("pokemon v2 main/assets/pkmn_logo.png").convert_alpha() #Transparent, Black Pokemon Logo
 #pkmn_logo = pygame.transform.scale(pkmn_logo, (100,100))
-blue_sky=pygame.image.load("assets/blue_sky.jpg").convert() #Blue Sky for the PKMN selection screen.
+blue_sky=pygame.image.load("pokemon v2 main/assets/blue_sky.jpg").convert() #Blue Sky for the PKMN selection screen.
 blue_sky=pygame.transform.scale(blue_sky, DISPLAY_SIZE) 
 
+#BATTLE SCREEN
+battle_back = pygame.image.load('pokemon v2 main/assets/background.png')
+battle_back = pygame.transform.scale(battle_back,(DISPLAY_SIZE))
 
 #EVENTS
 START_SCREEN = pygame.USEREVENT + 1
@@ -57,7 +63,8 @@ def draw_start_screen():    #Draw the start screen, includes Start text, pokemon
 def pkmn_selection_screen(player1choice,player2choice):
     toptext=font100.render("CHOOSE YOUR POKEMON!",0,'YELLOW')
     toptextrect=toptext.get_rect(center=(WIDTH//2,50))
-
+    starttext = font100.render("PRESS ENTER TO START YOUR BATTLE!!", 0, "GREEN")
+    starttext = pygame.transform.scale(starttext, (600, 40))
     player1text=font60.render(f"Player1:{pkmn_stats.loc[player1choice,'Name']}",0,'White') #render() has 3 required arguments:
     player2text=font60.render(f"Player2:{pkmn_stats.loc[player2choice,'Name']}",0,'White') #1.Text to render
                                                                                             #2.Whether to Anti-Alias
@@ -66,29 +73,30 @@ def pkmn_selection_screen(player1choice,player2choice):
     DISPLAY.blit(toptext,toptextrect)
     DISPLAY.blit(player1text,(10,100))
     DISPLAY.blit(player2text,(10,150))
+    DISPLAY.blit(starttext, (200, 200))
     
     for i in range(1,6):
-        pokemon_potrait = pygame.image.load(f'assets/potraits/{i}.png').convert_alpha()
+        pokemon_potrait = pygame.image.load(f'pokemon v2 main/assets/potraits/{i}.png').convert_alpha()
         pokemon_potrait = pygame.transform.scale(pokemon_potrait,(120,120))
         pokemon_recttop=pokemon_potrait.get_rect(center=(WIDTH*i/5-WIDTH/10,300))
         DISPLAY.blit(pokemon_potrait,pokemon_recttop)
     for i in range(6,11):
-        pokemon_potrait = pygame.image.load(f'assets/potraits/{i}.png').convert_alpha()
+        pokemon_potrait = pygame.image.load(f'pokemon v2 main/assets/potraits/{i}.png').convert_alpha()
         pokemon_potrait = pygame.transform.scale(pokemon_potrait,(120,120))
         pokemon_rect=pokemon_potrait.get_rect(center=(WIDTH*(i-5)/5-WIDTH/10,500))
         DISPLAY.blit(pokemon_potrait,pokemon_rect)
     
     if player1choice != 'Choose Pokemon':
         if player1choice == 0:
-            player1potrait = pygame.image.load(f"assets/potraits/10.png").convert_alpha()
+            player1potrait = pygame.image.load(f"pokemon v2 main/assets/potraits/10.png").convert_alpha()
         else:
-            player1potrait = pygame.image.load(f"assets/potraits/{player1choice}.png").convert_alpha()
+            player1potrait = pygame.image.load(f"pokemon v2 main/assets/potraits/{player1choice}.png").convert_alpha()
         DISPLAY.blit(player1potrait,(360,90))
     if player2choice != 'Choose Pokemon':
         if player2choice == 0:
-            player2potrait = pygame.image.load(f"assets/potraits/10.png").convert_alpha()
+            player2potrait = pygame.image.load(f"pokemon v2 main/assets/potraits/10.png").convert_alpha()
         else:
-            player2potrait = pygame.image.load(f"assets/potraits/{player2choice}.png").convert_alpha()
+            player2potrait = pygame.image.load(f"pokemon v2 main/assets/potraits/{player2choice}.png").convert_alpha()
         DISPLAY.blit(player2potrait,(360,140))
 
     pygame.display.update()
@@ -125,11 +133,52 @@ def initialize_moves(player1pokemon,player2pokemon):
     
     return player1pokemon,player2pokemon
 
-def load_sprites(player1choice,player2choice):
-    player1front=pygame.image.load(f"assets/front/{player1choice}.png").convert_alpha()
-    player1back=pygame.image.load(f"assets/back/{player1choice}.png").convert_alpha()
-    player2front=pygame.image.load(f"assets/front/{player2choice}.png").convert_alpha()
-    player2back=pygame.image.load(f"assets/back/{player2choice}.png").convert_alpha()
+def load_sprites_text(player1pokemon,player2pokemon):
+    Pkmn_1 = player1pokemon.name
+    Pkmn_2 = player2pokemon.name
+
+    Pokemon1 = pygame.image.load(f'pokemon v2 main/assets/Pkmn_back/{Pkmn_1}_b.png').convert_alpha()
+    Pokemon2 = pygame.image.load(f'pokemon v2 main/assets/Pkmn_front/{Pkmn_2}.png').convert_alpha()
+    Pokemon1 = pygame.transform.scale(Pokemon1, (400,400))
+    Pokemon2 = pygame.transform.scale(Pokemon2, (300,300))
+
+    textbox = pygame.image.load('pokemon v2 main/assets/textbox.png').convert_alpha()
+    textbox = pygame.transform.scale(textbox, (1000, 150))
+
+    Pkmn1HpBoxName = font60.render(Pkmn_1, 0, "BLACK")
+    Pkmn1HpBoxName = pygame.transform.scale(Pkmn1HpBoxName, (100, 30))
+
+    Pkmn2HpBoxName = font60.render(Pkmn_2, 0, "BLACK")
+    Pkmn2HpBoxName = pygame.transform.scale(Pkmn2HpBoxName, (100, 30))
+
+    HPP1= font60.render("HP:", 0, "BLACK")
+    HPP1 = pygame.transform.scale(HPP1, (40, 20))
+
+    HPP2 = font60.render("HP:", 0, "BLACK")
+    HPP2 = pygame.transform.scale(HPP2, (40, 20))
+
+    hpboxP1 = pygame.image.load('pokemon v2 main/assets/HPbox1.png').convert_alpha()
+    hpboxP1 = pygame.transform.scale(hpboxP1, (450, 160))
+    
+    hpboxP2 = pygame.image.load('pokemon v2 main/assets/HPbox1.png').convert_alpha()
+    hpboxP2 = pygame.transform.flip(hpboxP2, True, False)
+    hpboxP2 = pygame.transform.scale(hpboxP2, (450, 160))
+
+    DISPLAY.blit(hpboxP1, (540, 400))
+    DISPLAY.blit(hpboxP2, (20, 40))
+    DISPLAY.blit(HPP1, (610, 480))
+    DISPLAY.blit(HPP2, (90, 120))
+    DISPLAY.blit(Pkmn2HpBoxName, (90, 80))
+    DISPLAY.blit(Pkmn1HpBoxName, (610, 440))
+    DISPLAY.blit(Pokemon1, (70, 230))
+    DISPLAY.blit(Pokemon2, (530,130))
+    DISPLAY.blit(textbox, (0, 550))
+
+    
+
+def draw_battle_screen(player1pokemon, player2pokemon):
+    DISPLAY.blit(battle_back, (0, 0))
+    load_sprites_text(player1pokemon, player2pokemon)
 
 
 class Pokemon:
@@ -173,7 +222,7 @@ def main():
                 game_status='BATTLE'
                 player1pokemon,player2pokemon = initialize_player_pokemon(player1choice,player2choice)
                 player1pokemon,player2pokemon = initialize_moves(player1pokemon,player2pokemon)
-                load_sprites(player1choice,player2choice)
+                draw_battle_screen(player1pokemon, player2pokemon)
                 
                 
 
@@ -203,8 +252,12 @@ def main():
                     if event.key == K_0:
                         player1choice,player2choice = set_player_choice(0,player1choice,player2choice)
                     
-                    if player1choice != 'Choose Pokemon' and player2choice != 'Choose Pokemon':
-                        pygame.event.post(pygame.event.Event(BATTLE))
+                    if event.type == KEYDOWN:
+                        if event.key == K_RETURN and game_status == 'CHOOSE_PKMN':  #Pressing Enter the Battle will begin
+                            pygame.event.post(pygame.event.Event(BATTLE))               
+
+                    #if player1choice != 'Choose Pokemon' and player2choice != 'Choose Pokemon':
+                        #pygame.event.post(pygame.event.Event(BATTLE))
 
         pygame.display.update()
         CLOCK.tick(FPS)
