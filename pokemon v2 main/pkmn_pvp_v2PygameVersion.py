@@ -8,11 +8,11 @@ import sys
 pygame.init()
 
 #Load Dataframes
-pkmn_stats = pd.read_csv('pokemon_stats.csv') #Dataframe of all (10 included) Pokemon with HP,Attack,Defense,Type and Moves.
+pkmn_stats = pd.read_csv('csv/pokemon_stats.csv') #Dataframe of all (10 included) Pokemon with HP,Attack,Defense,Type and Moves.
 pkmn_stats.loc['Choose Pokemon','Name']='Choose Pokemon'
-type_matchups = pd.read_csv('type_matchups.csv').T #Stores all 12 types(included), with their weaknesses,resistances and immunities. 
+type_matchups = pd.read_csv('csv/type_matchups.csv').T #Stores all 12 types(included), with their weaknesses,resistances and immunities. 
 type_matchups.columns = ["weaknesses","resistances","immunities"] #assigns columns after transposing it
-moves_df=pd.read_csv('moves.csv') #stores moves with type, damage, and other parameters
+moves_df=pd.read_csv('csv/moves.csv') #stores moves with type, damage, and other parameters
 moves_df.index=moves_df.loc[:,'Name'] 
 
 #Display
@@ -22,8 +22,8 @@ DISPLAY = pygame.display.set_mode(DISPLAY_SIZE)
 pygame.display.set_caption("POKEMON GAME")
 
 #Fonts
-font60 = pygame.font.Font("Pixeltype.ttf",60)
-font100 = pygame.font.Font("Pixeltype.ttf",100)
+font60 = pygame.font.Font("fonts/Pixeltype.ttf",60)
+font100 = pygame.font.Font("fonts/Pixeltype.ttf",100)
 
 #Colors
 WHITE = (255, 255, 255)
@@ -34,11 +34,11 @@ FPS = 60
 CLOCK = pygame.time.Clock()
 
 #START SCREEN
-pkmn_background = pygame.image.load("gengar_pixels.jpeg").convert_alpha() #Pixel Art of a Gengar for the Start Screen, Spooky... 
+pkmn_background = pygame.image.load("assets/gengar_pixels.jpeg").convert_alpha() #Pixel Art of a Gengar for the Start Screen, Spooky... 
 pkmn_background = pygame.transform.scale(pkmn_background, DISPLAY_SIZE)
-pkmn_logo = pygame.image.load("pkmn_logo.png").convert_alpha() #Transparent, Black Pokemon Logo
+pkmn_logo = pygame.image.load("assets/pkmn_logo.png").convert_alpha() #Transparent, Black Pokemon Logo
 #pkmn_logo = pygame.transform.scale(pkmn_logo, (100,100))
-blue_sky=pygame.image.load("blue_sky.jpg").convert() #Blue Sky for the PKMN selection screen.
+blue_sky=pygame.image.load("assets/blue_sky.jpg").convert() #Blue Sky for the PKMN selection screen.
 blue_sky=pygame.transform.scale(blue_sky, DISPLAY_SIZE) 
 
 
@@ -58,8 +58,8 @@ def pkmn_selection_screen(player1choice,player2choice):
     toptext=font100.render("CHOOSE YOUR POKEMON!",0,'YELLOW')
     toptextrect=toptext.get_rect(center=(WIDTH//2,50))
 
-    player1text=font60.render(f"Player1: {pkmn_stats.loc[player1choice,'Name']}",0,'White') #render() has 3 required arguments:
-    player2text=font60.render(f"Player2: {pkmn_stats.loc[player2choice,'Name']}",0,'White') #1.Text to render
+    player1text=font60.render(f"Player1:{pkmn_stats.loc[player1choice,'Name']}",0,'White') #render() has 3 required arguments:
+    player2text=font60.render(f"Player2:{pkmn_stats.loc[player2choice,'Name']}",0,'White') #1.Text to render
                                                                                             #2.Whether to Anti-Alias
                                                                                             #3.Color of text
     DISPLAY.blit(blue_sky,(0,0))
@@ -68,15 +68,28 @@ def pkmn_selection_screen(player1choice,player2choice):
     DISPLAY.blit(player2text,(10,150))
     
     for i in range(1,6):
-        pokemon_potrait = pygame.image.load(f'potraits/{i}.png').convert_alpha()
+        pokemon_potrait = pygame.image.load(f'assets/potraits/{i}.png').convert_alpha()
         pokemon_potrait = pygame.transform.scale(pokemon_potrait,(120,120))
         pokemon_recttop=pokemon_potrait.get_rect(center=(WIDTH*i/5-WIDTH/10,300))
         DISPLAY.blit(pokemon_potrait,pokemon_recttop)
     for i in range(6,11):
-        pokemon_potrait = pygame.image.load(f'potraits/{i}.png').convert_alpha()
+        pokemon_potrait = pygame.image.load(f'assets/potraits/{i}.png').convert_alpha()
         pokemon_potrait = pygame.transform.scale(pokemon_potrait,(120,120))
         pokemon_rect=pokemon_potrait.get_rect(center=(WIDTH*(i-5)/5-WIDTH/10,500))
         DISPLAY.blit(pokemon_potrait,pokemon_rect)
+    
+    if player1choice != 'Choose Pokemon':
+        if player1choice == 0:
+            player1potrait = pygame.image.load(f"assets/potraits/10.png").convert_alpha()
+        else:
+            player1potrait = pygame.image.load(f"assets/potraits/{player1choice}.png").convert_alpha()
+        DISPLAY.blit(player1potrait,(360,90))
+    if player2choice != 'Choose Pokemon':
+        if player2choice == 0:
+            player2potrait = pygame.image.load(f"assets/potraits/10.png").convert_alpha()
+        else:
+            player2potrait = pygame.image.load(f"assets/potraits/{player2choice}.png").convert_alpha()
+        DISPLAY.blit(player2potrait,(360,140))
 
     pygame.display.update()
     
@@ -111,6 +124,13 @@ def initialize_moves(player1pokemon,player2pokemon):
     player2pokemon.moves=player2moves
     
     return player1pokemon,player2pokemon
+
+def load_sprites(player1choice,player2choice):
+    player1front=pygame.image.load(f"assets/front/{player1choice}.png").convert_alpha()
+    player1back=pygame.image.load(f"assets/back/{player1choice}.png").convert_alpha()
+    player2front=pygame.image.load(f"assets/front/{player2choice}.png").convert_alpha()
+    player2back=pygame.image.load(f"assets/back/{player2choice}.png").convert_alpha()
+
 
 class Pokemon:
     def __init__(self,name,HP,attack,defense,type_,moves,status=None):
@@ -153,6 +173,7 @@ def main():
                 game_status='BATTLE'
                 player1pokemon,player2pokemon = initialize_player_pokemon(player1choice,player2choice)
                 player1pokemon,player2pokemon = initialize_moves(player1pokemon,player2pokemon)
+                load_sprites(player1choice,player2choice)
                 
                 
 
