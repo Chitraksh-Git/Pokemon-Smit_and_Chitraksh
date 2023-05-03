@@ -197,6 +197,14 @@ def load_sprites_text(player1pokemon,player2pokemon):
     hpboxP2 = pygame.transform.flip(hpboxP2, True, False)
     hpboxP2 = pygame.transform.scale(hpboxP2, (450, 160))
 
+    maxHP1 = player1pokemon.HP
+    maxHP2 = player2pokemon.HP
+    maxHPtext1 = font60.render(str(maxHP1), 0, "BLACK")
+    maxHPtext1 = pygame.transform.scale(maxHPtext1, (40, 20))
+    maxHPtext2 = font60.render(str(maxHP2), 0, "BLACK")
+    maxHPtext2 = pygame.transform.scale(maxHPtext2, (40, 20))
+
+    
     DISPLAY.blit(hpboxP1, (540, 400))
     DISPLAY.blit(hpboxP2, (20, 40))
     DISPLAY.blit(HPP1, (610, 480))
@@ -206,8 +214,9 @@ def load_sprites_text(player1pokemon,player2pokemon):
     DISPLAY.blit(Pokemon1, (70, 230))
     DISPLAY.blit(Pokemon2, (530,130))
     DISPLAY.blit(textbox, (0, 550))
+    DISPLAY.blit(maxHPtext1, (880, 500))
+    DISPLAY.blit(maxHPtext2, (360, 140))    
 
-    
 
 def draw_battle_screen(player1pokemon, player2pokemon):
     DISPLAY.blit(battle_back, (0, 0))
