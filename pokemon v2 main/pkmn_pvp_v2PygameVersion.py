@@ -63,8 +63,10 @@ def draw_start_screen():    #Draw the start screen, includes Start text, pokemon
 def pkmn_selection_screen(player1choice,player2choice):
     toptext=font100.render("CHOOSE YOUR POKEMON!",0,'YELLOW')
     toptextrect=toptext.get_rect(center=(WIDTH//2,50))
+
     starttext = font100.render("PRESS ENTER TO START YOUR BATTLE!!", 0, "GREEN")
     starttext = pygame.transform.scale(starttext, (600, 40))
+    
     player1text=font60.render(f"Player1:{pkmn_stats.loc[player1choice,'Name']}",0,'White') #render() has 3 required arguments:
     player2text=font60.render(f"Player2:{pkmn_stats.loc[player2choice,'Name']}",0,'White') #1.Text to render
                                                                                             #2.Whether to Anti-Alias
@@ -75,16 +77,24 @@ def pkmn_selection_screen(player1choice,player2choice):
     DISPLAY.blit(player2text,(10,150))
     DISPLAY.blit(starttext, (200, 200))
     
+    potrait_rect_list=[]
     for i in range(1,6):
         pokemon_potrait = pygame.image.load(f'pokemon v2 main/assets/potraits/{i}.png').convert_alpha()
         pokemon_potrait = pygame.transform.scale(pokemon_potrait,(120,120))
-        pokemon_recttop=pokemon_potrait.get_rect(center=(WIDTH*i/5-WIDTH/10,300))
-        DISPLAY.blit(pokemon_potrait,pokemon_recttop)
+        potrait_rect=pokemon_potrait.get_rect(center=(WIDTH*i/5-WIDTH/10,300))
+        potrait_rect_list.append(potrait_rect)
+        DISPLAY.blit(pokemon_potrait,potrait_rect)
+
+    potrait_rect_list2=[]
     for i in range(6,11):
         pokemon_potrait = pygame.image.load(f'pokemon v2 main/assets/potraits/{i}.png').convert_alpha()
         pokemon_potrait = pygame.transform.scale(pokemon_potrait,(120,120))
-        pokemon_rect=pokemon_potrait.get_rect(center=(WIDTH*(i-5)/5-WIDTH/10,500))
-        DISPLAY.blit(pokemon_potrait,pokemon_rect)
+        potrait_rect=pokemon_potrait.get_rect(center=(WIDTH*(i-5)/5-WIDTH/10,500))
+        potrait_rect_list2.append(potrait_rect)
+        DISPLAY.blit(pokemon_potrait,potrait_rect)
+
+    potrait_rect_list.extend(potrait_rect_list2)
+    return potrait_rect_list
     
     if player1choice != 'Choose Pokemon':
         if player1choice == 0:
@@ -101,6 +111,29 @@ def pkmn_selection_screen(player1choice,player2choice):
 
     pygame.display.update()
     
+def take_user_input(event,player1choice,player2choice):
+    if event.key == K_1:
+        player1choice,player2choice = set_player_choice(1,player1choice,player2choice)
+    if event.key == K_2:
+        player1choice,player2choice = set_player_choice(2,player1choice,player2choice)
+    if event.key == K_3:
+        player1choice,player2choice = set_player_choice(3,player1choice,player2choice)
+    if event.key == K_4:
+        player1choice,player2choice = set_player_choice(4,player1choice,player2choice)
+    if event.key == K_5:
+        player1choice,player2choice = set_player_choice(5,player1choice,player2choice)
+    if event.key == K_6:
+        player1choice,player2choice = set_player_choice(6,player1choice,player2choice)
+    if event.key == K_7:
+        player1choice,player2choice = set_player_choice(7,player1choice,player2choice)
+    if event.key == K_8:
+        player1choice,player2choice = set_player_choice(8,player1choice,player2choice)
+    if event.key == K_9:
+        player1choice,player2choice = set_player_choice(9,player1choice,player2choice)
+    if event.key == K_0:
+        player1choice,player2choice = set_player_choice(0,player1choice,player2choice)
+    return player1choice,player2choice
+
 def set_player_choice(choice,player1choice,player2choice):
     if player1choice == 'Choose Pokemon': 
         player1choice = choice
@@ -216,7 +249,7 @@ def main():
 
             if event.type == CHOOSE_PKMN:
                 game_status='CHOOSE_PKMN'
-                pkmn_selection_screen(player1choice,player2choice)
+                potrait_rect_list = pkmn_selection_screen(player1choice,player2choice)
             
             if event.type == BATTLE:
                 game_status='BATTLE'
@@ -224,33 +257,11 @@ def main():
                 player1pokemon,player2pokemon = initialize_moves(player1pokemon,player2pokemon)
                 draw_battle_screen(player1pokemon, player2pokemon)
                 
-                
-
-
             if event.type == KEYDOWN:
                 if event.key==K_SPACE and game_status == 'START_SCREEN':
                     pygame.event.post(pygame.event.Event(CHOOSE_PKMN))
                 if game_status == 'CHOOSE_PKMN':
-                    if event.key == K_1:
-                        player1choice,player2choice = set_player_choice(1,player1choice,player2choice)
-                    if event.key == K_2:
-                        player1choice,player2choice = set_player_choice(2,player1choice,player2choice)
-                    if event.key == K_3:
-                        player1choice,player2choice = set_player_choice(3,player1choice,player2choice)
-                    if event.key == K_4:
-                        player1choice,player2choice = set_player_choice(4,player1choice,player2choice)
-                    if event.key == K_5:
-                        player1choice,player2choice = set_player_choice(5,player1choice,player2choice)
-                    if event.key == K_6:
-                        player1choice,player2choice = set_player_choice(6,player1choice,player2choice)
-                    if event.key == K_7:
-                        player1choice,player2choice = set_player_choice(7,player1choice,player2choice)
-                    if event.key == K_8:
-                        player1choice,player2choice = set_player_choice(8,player1choice,player2choice)
-                    if event.key == K_9:
-                        player1choice,player2choice = set_player_choice(9,player1choice,player2choice)
-                    if event.key == K_0:
-                        player1choice,player2choice = set_player_choice(0,player1choice,player2choice)
+                    player1choice,player2choice = take_user_input(event,player1choice,player2choice)
                     
                     if event.type == KEYDOWN:
                         if event.key == K_RETURN and game_status == 'CHOOSE_PKMN':  #Pressing Enter the Battle will begin
@@ -258,6 +269,18 @@ def main():
 
                     #if player1choice != 'Choose Pokemon' and player2choice != 'Choose Pokemon':
                         #pygame.event.post(pygame.event.Event(BATTLE))
+
+            if event.type == MOUSEBUTTONDOWN:
+                if game_status == 'START_SCREEN':
+                    pygame.event.post(pygame.event.Event(CHOOSE_PKMN))
+                if game_status == 'CHOOSE_PKMN':
+                    i = 1
+                    for potrait_rect in potrait_rect_list:
+                        if potrait_rect.collidepoint(event.pos):
+                                player1choice,player2choice = set_player_choice(int(str(i)[-1]),player1choice,player2choice)    
+                                #the int(str(i[-1])) is to take last digit of every number since machamp is 10th                         
+                        i+=1
+
 
         pygame.display.update()
         CLOCK.tick(FPS)
