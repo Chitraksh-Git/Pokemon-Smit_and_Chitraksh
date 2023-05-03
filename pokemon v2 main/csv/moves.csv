@@ -12,13 +12,13 @@ Mega Punch,Fighting,110,1,0,0
 Surf,Water,80,1,0,0
 Thunder Wave,Electric,0,1,0,0
 Ice Beam,Ice,100,1,Freeze,0.05
-Dragon Dance,Dragon,0,1,0,0
+Dragon Dance,Status,0,1,0,0
 Take Down,Normal,110,1,0,0
-Iron Defense,Rock,0,1,0,0
+Iron Defense,Status,0,1,0,0
 Attract,Status,0,1,Immobilise,1
 Fly,Flying,80,2,0,0
 Sleep Powder,Status,0,1,Sleep,1
-Lick,Status,0,1,Immobilise,1
+Lick,Normal,70,1,Paralyze,0.5
 Roost,Status,0,1,0,1
 Psychic,Psychic,100,1,0,0
 Calm Mind,Status,0,1,0,0

@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 import random as rnd
 import sys 
-
+from copy import deepcopy
 
 pygame.init()
 
@@ -95,7 +95,6 @@ def pkmn_selection_screen(player1choice,player2choice):
         DISPLAY.blit(pokemon_potrait,potrait_rect)
 
     potrait_rect_list.extend(potrait_rect_list2)
-    return potrait_rect_list
     
     if player1choice != 'Choose Pokemon':
         if player1choice == 0:
@@ -111,6 +110,7 @@ def pkmn_selection_screen(player1choice,player2choice):
         DISPLAY.blit(player2potrait,(360,140))
 
     pygame.display.update()
+    return potrait_rect_list
     
 def take_user_input(event,player1choice,player2choice):
     if event.key == K_1:
@@ -147,10 +147,12 @@ def set_player_choice(choice,player1choice,player2choice):
 def initialize_player_pokemon(player1choice,player2choice):
     player1series=pkmn_stats.loc[player1choice,:]
     player2series=pkmn_stats.loc[player2choice,:]
-    player1pokemon=Pokemon(*player1series['Name':'Type'],player1series['Move1':'Move4'],None)
-    player2pokemon=Pokemon(*player2series['Name':'Type'],player2series['Move1':'Move4'],None)
+    player1pokemonbase=Pokemon(*player1series['Name':'Type'],player1series['Move1':'Move4'],None)
+    player2pokemonbase=Pokemon(*player2series['Name':'Type'],player2series['Move1':'Move4'],None)
+    player1pokemon = deepcopy(player1pokemonbase)
+    player2pokemon = deepcopy(player2pokemonbase)
 
-    return player1pokemon,player2pokemon
+    return player1pokemon,player2pokemon,player1pokemonbase,player2pokemonbase
 
 def initialize_moves(player1pokemon,player2pokemon):
     player1moves=[]
@@ -167,22 +169,30 @@ def initialize_moves(player1pokemon,player2pokemon):
     
     return player1pokemon,player2pokemon
 
-def load_sprites_text(player1pokemon,player2pokemon):
-    Pkmn_1 = player1pokemon.name
-    Pkmn_2 = player2pokemon.name
+def turn_handler(player1pokemon,player2pokemon,turn=1):
+    if turn == 1: 
+        currentpokemon = player1pokemon
+        opposingpokemon = player2pokemon
+    elif turn == 2:
+        currentpokemon = player2pokemon
+        opposingpokemon = player1pokemon
+    return currentpokemon, opposingpokemon, turn
 
-    Pokemon1 = pygame.image.load(f'pokemon v2 main/assets/Pkmn_back/{Pkmn_1}_b.png').convert_alpha()
-    Pokemon2 = pygame.image.load(f'pokemon v2 main/assets/Pkmn_front/{Pkmn_2}.png').convert_alpha()
+def load_sprites_text(currentpokemon,opposingpokemon):
+    currentpokemon_name = currentpokemon.name
+    opposingpokemon_name = opposingpokemon.name
+
+    Pokemon1 = pygame.image.load(f'pokemon v2 main/assets/Pkmn_back/{currentpokemon_name}_b.png').convert_alpha()
+    Pokemon2 = pygame.image.load(f'pokemon v2 main/assets/Pkmn_front/{opposingpokemon_name}.png').convert_alpha()
     Pokemon1 = pygame.transform.scale(Pokemon1, (400,400))
     Pokemon2 = pygame.transform.scale(Pokemon2, (300,300))
 
     textbox = pygame.image.load('pokemon v2 main/assets/textbox.png').convert_alpha()
     textbox = pygame.transform.scale(textbox, (1000, 150))
 
-    Pkmn1HpBoxName = font40.render(Pkmn_1, 0, "BLACK")
+    Pkmn1HpBoxName = font40.render(currentpokemon_name, 0, "BLACK")
 
-
-    Pkmn2HpBoxName = font40.render(Pkmn_2, 0, "BLACK")
+    Pkmn2HpBoxName = font40.render(opposingpokemon_name, 0, "BLACK")
 
     HPP1= font60.render("HP:", 0, "BLACK")
     HPP1 = pygame.transform.scale(HPP1, (40, 20))
@@ -209,23 +219,26 @@ def load_sprites_text(player1pokemon,player2pokemon):
 
     
 
-def draw_battle_screen(player1pokemon, player2pokemon):
+def draw_battle_screen(currentpokemon, opposingpokemon):
     DISPLAY.blit(battle_back, (0, 0))
-    load_sprites_text(player1pokemon, player2pokemon)
+    load_sprites_text(currentpokemon, opposingpokemon)
 
-def show_moves(turn,player1pokemon,player2pokemon):
-    if turn == 1: currentplayerpokemon = player1pokemon
-    else: currentplayerpokemon = player2pokemon
+
+def show_moves(currentpokemon):
 
     move_text_positions=((50,580),(325,580),(50,635),(325,635))
     
     move_text_rect_list=[]
-    for move, position in zip(currentplayerpokemon.moves, move_text_positions):
+    for move, position in zip(currentpokemon.moves, move_text_positions):
         move_text=font60.render(move.name,0,'Black')
         move_text_rect = move_text.get_rect(topleft=position)
         DISPLAY.blit(move_text,move_text_rect)
         move_text_rect_list.append(move_text_rect)
+    trainertext=font40.render(f'{currentpokemon.name}\'s Trainer,',0,'Black')
+    pickyourmovetext=font40.render('Pick your Move!',0,'Black')
     
+    DISPLAY.blit(trainertext,(600,580))
+    DISPLAY.blit(pickyourmovetext,(600,625))
     return move_text_rect_list
 
 
@@ -240,6 +253,39 @@ class Pokemon:
         self.moves = moves
         self.status = status
     
+    def perform_attack(self, move_chosen_no, opposingpokemon, turn):
+        #print(f"{self.name} did {self.moves[move_chosen_no].name}")
+        move_chosen = self.moves[move_chosen_no]
+        # print(move_chosen.type_)
+        # print(type_matchups.loc[opposingpokemon.type_,'weaknesses'].split())
+        # print(self.attack)
+        # print(opposingpokemon.defense)
+        # print(move_chosen.damage)
+        # print(move_chosen.type_ in type_matchups.loc[opposingpokemon.type_,'weaknesses'].split(','))
+        if move_chosen.type_ != 'Status':
+            if move_chosen.type_ in type_matchups.loc[opposingpokemon.type_,'weaknesses'].split(','):
+                type_multiplier = 2
+            elif move_chosen.type_ in type_matchups.loc[opposingpokemon.type_,'resistances'].split(','):
+                type_multiplier = 0.5
+            elif move_chosen.type_ in type_matchups.loc[opposingpokemon.type_,'immunities'].split(','):
+                type_multiplier = 0
+            else: type_multiplier = 1
+        else:
+            type_multiplier = 1
+            move_chosen.damage = 80
+        turn_damage = ((self.attack/opposingpokemon.defense) * move_chosen.damage * type_multiplier)//4
+        print(f'{self.name} did {turn_damage} damage')
+        
+        if turn == 1:
+            turn = 2
+        elif turn == 2:
+            turn = 1
+        return turn_damage,turn
+
+            
+        
+
+
 class Move:
     def __init__(self,name,type_,damage,turn_no,effects):
         self.name=name
@@ -254,7 +300,6 @@ def main():
     player1choice='Choose Pokemon'
     player2choice='Choose Pokemon'
     turn=1
-
     while game_status != 'quit':
         for event in pygame.event.get():
             if event.type == QUIT:
@@ -271,10 +316,13 @@ def main():
             
             if event.type == BATTLE:
                 game_status='BATTLE'
-                player1pokemon,player2pokemon = initialize_player_pokemon(player1choice,player2choice)
+                player1pokemon,player2pokemon,player1pokemonbase,player2pokemonbase = \
+                      initialize_player_pokemon(player1choice,player2choice)
                 player1pokemon,player2pokemon = initialize_moves(player1pokemon,player2pokemon)
-                draw_battle_screen(player1pokemon, player2pokemon)
-                move_text_rect_list = show_moves(turn,player1pokemon,player2pokemon)
+                currentpokemon, opposingpokemon, turn = turn_handler(player1pokemon,player2pokemon,turn)
+                
+                draw_battle_screen(currentpokemon, opposingpokemon)
+                move_text_rect_list = show_moves(currentpokemon)
 
                 
             if event.type == KEYDOWN:
@@ -300,12 +348,13 @@ def main():
                                 #the int(str(i[-1])) is to take last digit of every number since machamp is 10th                         
                         i+=1
                 if game_status == 'BATTLE':
-                    i = 0
-                    move_chosen = 0
+                    move_chosen_no = 0
                     for move_text_rect in move_text_rect_list:
                         if move_text_rect.collidepoint(event.pos):
-                            pass
-                        i += 1
+                            turn_damage, turn = currentpokemon.perform_attack( move_chosen_no, opposingpokemon,turn)
+                            pygame.event.post(pygame.event.Event(BATTLE))
+                        move_chosen_no+=1
+                        
 
 
         pygame.display.update()
