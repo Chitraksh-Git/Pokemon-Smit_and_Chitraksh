@@ -23,6 +23,7 @@ DISPLAY = pygame.display.set_mode(DISPLAY_SIZE)
 pygame.display.set_caption("POKEMON GAME")
 
 #Fonts
+font40 = pygame.font.Font("pokemon v2 main/fonts/Pixeltype.ttf",40)
 font60 = pygame.font.Font("pokemon v2 main/fonts/Pixeltype.ttf",60)
 font100 = pygame.font.Font("pokemon v2 main/fonts/Pixeltype.ttf",100)
 
@@ -178,11 +179,10 @@ def load_sprites_text(player1pokemon,player2pokemon):
     textbox = pygame.image.load('pokemon v2 main/assets/textbox.png').convert_alpha()
     textbox = pygame.transform.scale(textbox, (1000, 150))
 
-    Pkmn1HpBoxName = font60.render(Pkmn_1, 0, "BLACK")
-    Pkmn1HpBoxName = pygame.transform.scale(Pkmn1HpBoxName, (100, 30))
+    Pkmn1HpBoxName = font40.render(Pkmn_1, 0, "BLACK")
 
-    Pkmn2HpBoxName = font60.render(Pkmn_2, 0, "BLACK")
-    Pkmn2HpBoxName = pygame.transform.scale(Pkmn2HpBoxName, (100, 30))
+
+    Pkmn2HpBoxName = font40.render(Pkmn_2, 0, "BLACK")
 
     HPP1= font60.render("HP:", 0, "BLACK")
     HPP1 = pygame.transform.scale(HPP1, (40, 20))
@@ -213,6 +213,22 @@ def draw_battle_screen(player1pokemon, player2pokemon):
     DISPLAY.blit(battle_back, (0, 0))
     load_sprites_text(player1pokemon, player2pokemon)
 
+def show_moves(turn,player1pokemon,player2pokemon):
+    if turn == 1: currentplayerpokemon = player1pokemon
+    else: currentplayerpokemon = player2pokemon
+
+    move_text_positions=((50,580),(325,580),(50,635),(325,635))
+    
+    move_text_rect_list=[]
+    for move, position in zip(currentplayerpokemon.moves, move_text_positions):
+        move_text=font60.render(move.name,0,'Black')
+        move_text_rect = move_text.get_rect(topleft=position)
+        DISPLAY.blit(move_text,move_text_rect)
+        move_text_rect_list.append(move_text_rect)
+    
+    return move_text_rect_list
+
+
 
 class Pokemon:
     def __init__(self,name,HP,attack,defense,type_,moves,status=None):
@@ -223,7 +239,7 @@ class Pokemon:
         self.type_ = type_
         self.moves = moves
         self.status = status
-
+    
 class Move:
     def __init__(self,name,type_,damage,turn_no,effects):
         self.name=name
@@ -237,6 +253,8 @@ def main():
     pygame.event.post(pygame.event.Event(START_SCREEN))
     player1choice='Choose Pokemon'
     player2choice='Choose Pokemon'
+    turn=1
+
     while game_status != 'quit':
         for event in pygame.event.get():
             if event.type == QUIT:
@@ -256,6 +274,8 @@ def main():
                 player1pokemon,player2pokemon = initialize_player_pokemon(player1choice,player2choice)
                 player1pokemon,player2pokemon = initialize_moves(player1pokemon,player2pokemon)
                 draw_battle_screen(player1pokemon, player2pokemon)
+                move_text_rect_list = show_moves(turn,player1pokemon,player2pokemon)
+
                 
             if event.type == KEYDOWN:
                 if event.key==K_SPACE and game_status == 'START_SCREEN':
@@ -263,9 +283,8 @@ def main():
                 if game_status == 'CHOOSE_PKMN':
                     player1choice,player2choice = take_user_input(event,player1choice,player2choice)
                     
-                    if event.type == KEYDOWN:
-                        if event.key == K_RETURN and game_status == 'CHOOSE_PKMN':  #Pressing Enter the Battle will begin
-                            pygame.event.post(pygame.event.Event(BATTLE))               
+                    if event.key == K_RETURN and player1choice != 'Choose Pokemon' and player2choice != 'Choose Pokemon':  #Pressing Enter the Battle will begin
+                        pygame.event.post(pygame.event.Event(BATTLE))               
 
                     #if player1choice != 'Choose Pokemon' and player2choice != 'Choose Pokemon':
                         #pygame.event.post(pygame.event.Event(BATTLE))
@@ -280,6 +299,13 @@ def main():
                                 player1choice,player2choice = set_player_choice(int(str(i)[-1]),player1choice,player2choice)    
                                 #the int(str(i[-1])) is to take last digit of every number since machamp is 10th                         
                         i+=1
+                if game_status == 'BATTLE':
+                    i = 0
+                    move_chosen = 0
+                    for move_text_rect in move_text_rect_list:
+                        if move_text_rect.collidepoint(event.pos):
+                            pass
+                        i += 1
 
 
         pygame.display.update()
