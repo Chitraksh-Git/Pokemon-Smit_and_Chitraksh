@@ -32,6 +32,7 @@ WHITE = (255, 255, 255)
 YELLOW = (255, 255, 0)
 GREEN = (0, 255, 0)
 BLACK = (0, 0, 0)
+RED = (255, 0, 0)
 
 #FPS
 FPS = 60
@@ -207,14 +208,6 @@ def load_sprites_text(currentpokemon,opposingpokemon):
     hpboxP2 = pygame.transform.flip(hpboxP2, True, False)
     hpboxP2 = pygame.transform.scale(hpboxP2, (450, 160))
 
-    maxHP1 = player1pokemon.HP
-    maxHP2 = player2pokemon.HP
-    maxHPtext1 = font60.render(str(maxHP1), 0, "BLACK")
-    maxHPtext1 = pygame.transform.scale(maxHPtext1, (40, 20))
-    maxHPtext2 = font60.render(str(maxHP2), 0, "BLACK")
-    maxHPtext2 = pygame.transform.scale(maxHPtext2, (40, 20))
-
-    
     DISPLAY.blit(hpboxP1, (540, 400))
     DISPLAY.blit(hpboxP2, (20, 40))
     DISPLAY.blit(HPP1, (610, 480))
@@ -224,13 +217,37 @@ def load_sprites_text(currentpokemon,opposingpokemon):
     DISPLAY.blit(Pokemon1, (70, 230))
     DISPLAY.blit(Pokemon2, (530,130))
     DISPLAY.blit(textbox, (0, 550))
-    DISPLAY.blit(maxHPtext1, (880, 500))
-    DISPLAY.blit(maxHPtext2, (360, 140))    
+ 
 
+def HPpokemon1(currentpokemon, turn_damage = 0):
+    maxHP1 = currentpokemon.HP
+    NewHP1 = maxHP1 - turn_damage
+    maxHPtext1 = font60.render(str(NewHP1), 0, "BLACK")
+    maxHPtext1 = pygame.transform.scale(maxHPtext1, (40, 20))
+
+    pygame.draw.rect(DISPLAY, RED, (660, 480, maxHP1, 15)) #RED IS UNDER THE GREEN 
+    pygame.draw.rect(DISPLAY, GREEN, (660, 480, NewHP1, 15)) #GREEN IS OVERLAPPING RED AND AS THE POKEMON TAKES DAMAGE THE GREEN WILL BE REDUCED RED WILL BE AS IT IS
+
+    DISPLAY.blit(maxHPtext1, (880, 500)) 
+
+
+def HPpokemon2(opposingpokemon, turn_damage = 0):
+    maxHP2 = opposingpokemon.HP
+    NewHP2 = maxHP2 - turn_damage
+    maxHPtext2 = font60.render(str(NewHP2), 0, "BLACK")
+    maxHPtext2 = pygame.transform.scale(maxHPtext2, (40, 20))
+
+    pygame.draw.rect(DISPLAY, RED, (140, 120, maxHP2, 15)) #RED IS UNDER THE GREEN 
+    pygame.draw.rect(DISPLAY, GREEN, (140, 120, NewHP2, 15)) #GREEN IS OVERLAPPING RED AND AS THE POKEMON TAKES DAMAGE THE GREEN WILL BE REDUCED RED WILL BE AS IT IS
+
+    DISPLAY.blit(maxHPtext2, (360, 140)) 
 
 def draw_battle_screen(currentpokemon, opposingpokemon):
     DISPLAY.blit(battle_back, (0, 0))
     load_sprites_text(currentpokemon, opposingpokemon)
+    HPpokemon1(currentpokemon, turn_damage = 0)
+    HPpokemon2(opposingpokemon, turn_damage = 0)
+
 
 
 def show_moves(currentpokemon):
@@ -245,7 +262,8 @@ def show_moves(currentpokemon):
         move_text_rect_list.append(move_text_rect)
     trainertext=font40.render(f'{currentpokemon.name}\'s Trainer,',0,'Black')
     pickyourmovetext=font40.render('Pick your Move!',0,'Black')
-    
+
+
     DISPLAY.blit(trainertext,(600,580))
     DISPLAY.blit(pickyourmovetext,(600,625))
     return move_text_rect_list
@@ -329,8 +347,9 @@ def main():
                       initialize_player_pokemon(player1choice,player2choice)
                 player1pokemon,player2pokemon = initialize_moves(player1pokemon,player2pokemon)
                 currentpokemon, opposingpokemon, turn = turn_handler(player1pokemon,player2pokemon,turn)
-                
+
                 draw_battle_screen(currentpokemon, opposingpokemon)
+
                 move_text_rect_list = show_moves(currentpokemon)
 
                 
@@ -360,7 +379,8 @@ def main():
                     move_chosen_no = 0
                     for move_text_rect in move_text_rect_list:
                         if move_text_rect.collidepoint(event.pos):
-                            turn_damage, turn = currentpokemon.perform_attack( move_chosen_no, opposingpokemon,turn)
+
+                            turn_damage, turn = currentpokemon.perform_attack(move_chosen_no, opposingpokemon,turn)
                             pygame.event.post(pygame.event.Event(BATTLE))
                         move_chosen_no+=1
                         
