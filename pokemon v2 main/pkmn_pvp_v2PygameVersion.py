@@ -23,6 +23,7 @@ DISPLAY = pygame.display.set_mode(DISPLAY_SIZE)
 pygame.display.set_caption("POKEMON GAME")
 
 #Fonts
+font30 = pygame.font.Font("pokemon v2 main/fonts/Pixeltype.ttf",30)
 font40 = pygame.font.Font("pokemon v2 main/fonts/Pixeltype.ttf",40)
 font60 = pygame.font.Font("pokemon v2 main/fonts/Pixeltype.ttf",60)
 font100 = pygame.font.Font("pokemon v2 main/fonts/Pixeltype.ttf",100)
@@ -33,6 +34,7 @@ YELLOW = (255, 255, 0)
 GREEN = (0, 255, 0)
 BLACK = (0, 0, 0)
 RED = (255, 0, 0)
+GRAY = (134,134,134)
 
 #FPS
 FPS = 60
@@ -45,6 +47,8 @@ pkmn_logo = pygame.image.load("pokemon v2 main/assets/pkmn_logo.png").convert_al
 #pkmn_logo = pygame.transform.scale(pkmn_logo, (100,100))
 blue_sky=pygame.image.load("pokemon v2 main/assets/blue_sky.jpg").convert() #Blue Sky for the PKMN selection screen.
 blue_sky=pygame.transform.scale(blue_sky, DISPLAY_SIZE) 
+TEXTBOX_image = pygame.image.load('pokemon v2 main/assets/textbox.png').convert_alpha()
+TEXTBOX_image = pygame.transform.scale(TEXTBOX_image, (1000, 150))
 
 #BATTLE SCREEN
 battle_back = pygame.image.load('pokemon v2 main/assets/background.png')
@@ -53,7 +57,12 @@ battle_back = pygame.transform.scale(battle_back,(DISPLAY_SIZE))
 #EVENTS
 START_SCREEN = pygame.USEREVENT + 1
 CHOOSE_PKMN = pygame.USEREVENT + 2
-BATTLE = pygame.USEREVENT + 3
+INIT_BATTLE = pygame.USEREVENT + 3
+UPDATE_BATTLE_SCREEN = pygame.USEREVENT + 4
+PICK_MOVE = pygame.USEREVENT + 5
+UPDATE_HP = pygame.USEREVENT + 6
+SHOW_TEXTBOX_OUTPUT = pygame.USEREVENT + 7
+
 
 def draw_start_screen():    #Draw the start screen, includes Start text, pokemon logo, and Gengar background.
     StartText=font60.render('PRESS SPACE TO START',0,'Black')
@@ -148,12 +157,10 @@ def set_player_choice(choice,player1choice,player2choice):
 def initialize_player_pokemon(player1choice,player2choice):
     player1series=pkmn_stats.loc[player1choice,:]
     player2series=pkmn_stats.loc[player2choice,:]
-    player1pokemonbase=Pokemon(*player1series['Name':'Type'],player1series['Move1':'Move4'],None)
-    player2pokemonbase=Pokemon(*player2series['Name':'Type'],player2series['Move1':'Move4'],None)
-    player1pokemon = deepcopy(player1pokemonbase)
-    player2pokemon = deepcopy(player2pokemonbase)
+    player1pokemon=Pokemon(*player1series['Name':'Type'],player1series['Move1':'Move4'],None)
+    player2pokemon=Pokemon(*player2series['Name':'Type'],player2series['Move1':'Move4'],None)
 
-    return player1pokemon,player2pokemon,player1pokemonbase,player2pokemonbase
+    return player1pokemon,player2pokemon
 
 def initialize_moves(player1pokemon,player2pokemon):
     player1moves=[]
@@ -170,6 +177,16 @@ def initialize_moves(player1pokemon,player2pokemon):
     
     return player1pokemon,player2pokemon
 
+def initialize_sprites(player1pokemon,player2pokemon):
+    player1pokemon.front_sprite = pygame.image.load(f'pokemon v2 main/assets/Pkmn_front/{player1pokemon.name}.png').convert_alpha()
+    player1pokemon.back_sprite = pygame.image.load(f'pokemon v2 main/assets/Pkmn_back/{player1pokemon.name}_b.png').convert_alpha()
+
+    player2pokemon.front_sprite = pygame.image.load(f'pokemon v2 main/assets/Pkmn_front/{player2pokemon.name}.png').convert_alpha()
+    player2pokemon.back_sprite = pygame.image.load(f'pokemon v2 main/assets/Pkmn_back/{player2pokemon.name}_b.png').convert_alpha()
+
+    return player1pokemon,player2pokemon
+
+
 def turn_handler(player1pokemon,player2pokemon,turn=1):
     if turn == 1: 
         currentpokemon = player1pokemon
@@ -179,27 +196,24 @@ def turn_handler(player1pokemon,player2pokemon,turn=1):
         opposingpokemon = player1pokemon
     return currentpokemon, opposingpokemon, turn
 
-def load_sprites_text(currentpokemon,opposingpokemon):
+def draw_battle_screen(currentpokemon, opposingpokemon,turn_damage=0):
+    DISPLAY.blit(battle_back, (0, 0))
+    draw_pokemon_and_boxes(currentpokemon, opposingpokemon)
+    update_HP(currentpokemon,opposingpokemon)
+    
+def draw_pokemon_and_boxes(currentpokemon,opposingpokemon):
     currentpokemon_name = currentpokemon.name
     opposingpokemon_name = opposingpokemon.name
 
-    Pokemon1 = pygame.image.load(f'pokemon v2 main/assets/Pkmn_back/{currentpokemon_name}_b.png').convert_alpha()
-    Pokemon2 = pygame.image.load(f'pokemon v2 main/assets/Pkmn_front/{opposingpokemon_name}.png').convert_alpha()
-    Pokemon1 = pygame.transform.scale(Pokemon1, (400,400))
-    Pokemon2 = pygame.transform.scale(Pokemon2, (300,300))
-
-    textbox = pygame.image.load('pokemon v2 main/assets/textbox.png').convert_alpha()
-    textbox = pygame.transform.scale(textbox, (1000, 150))
+    currentpokemon.back_sprite = pygame.transform.scale(currentpokemon.back_sprite, (400,400))
+    opposingpokemon.front_sprite = pygame.transform.scale(opposingpokemon.front_sprite, (300,300))
 
     Pkmn1HpBoxName = font40.render(currentpokemon_name, 0, "BLACK")
 
     Pkmn2HpBoxName = font40.render(opposingpokemon_name, 0, "BLACK")
 
-    HPP1= font60.render("HP:", 0, "BLACK")
-    HPP1 = pygame.transform.scale(HPP1, (40, 20))
-
-    HPP2 = font60.render("HP:", 0, "BLACK")
-    HPP2 = pygame.transform.scale(HPP2, (40, 20))
+    HPTEXT= font60.render("HP:", 0, "BLACK")
+    HPTEXT = pygame.transform.scale(HPTEXT, (40, 20))
 
     hpboxP1 = pygame.image.load('pokemon v2 main/assets/HPbox1.png').convert_alpha()
     hpboxP1 = pygame.transform.scale(hpboxP1, (450, 160))
@@ -208,47 +222,44 @@ def load_sprites_text(currentpokemon,opposingpokemon):
     hpboxP2 = pygame.transform.flip(hpboxP2, True, False)
     hpboxP2 = pygame.transform.scale(hpboxP2, (450, 160))
 
-    DISPLAY.blit(hpboxP1, (540, 400))
+    DISPLAY.blit(hpboxP1, (540, 400)) #the actual box
     DISPLAY.blit(hpboxP2, (20, 40))
-    DISPLAY.blit(HPP1, (610, 480))
-    DISPLAY.blit(HPP2, (90, 120))
-    DISPLAY.blit(Pkmn2HpBoxName, (90, 80))
+
+    DISPLAY.blit(HPTEXT, (610, 480)) #text saying HP: inside the box
+    DISPLAY.blit(HPTEXT, (90, 120))
+
+    DISPLAY.blit(Pkmn2HpBoxName, (90, 80)) #name of pokemon inside the box
     DISPLAY.blit(Pkmn1HpBoxName, (610, 440))
-    DISPLAY.blit(Pokemon1, (70, 230))
-    DISPLAY.blit(Pokemon2, (530,130))
-    DISPLAY.blit(textbox, (0, 550))
- 
 
-def HPpokemon1(currentpokemon, turn_damage = 0):
-    maxHP1 = currentpokemon.HP
-    NewHP1 = maxHP1 - turn_damage
-    maxHPtext1 = font60.render(str(NewHP1), 0, "BLACK")
-    maxHPtext1 = pygame.transform.scale(maxHPtext1, (40, 20))
+    DISPLAY.blit(currentpokemon.back_sprite, (70, 230)) #actual pokemon sprites
+    DISPLAY.blit(opposingpokemon.front_sprite, (530,130))
+    
+    DISPLAY.blit(TEXTBOX_image, (0, 550)) #text box at the bottom
+    pygame.display.update()
 
-    pygame.draw.rect(DISPLAY, RED, (660, 480, maxHP1, 15)) #RED IS UNDER THE GREEN 
-    pygame.draw.rect(DISPLAY, GREEN, (660, 480, NewHP1, 15)) #GREEN IS OVERLAPPING RED AND AS THE POKEMON TAKES DAMAGE THE GREEN WILL BE REDUCED RED WILL BE AS IT IS
+def update_HP(currentpokemon, opposingpokemon, turn_damage = 0):
+    maxHP1 = currentpokemon.maxHP
+    
+    maxHPtext1 = font30.render(f"{str(currentpokemon.currentHP)}/{str(currentpokemon.maxHP)}", 0, "BLACK")
 
-    DISPLAY.blit(maxHPtext1, (880, 500)) 
+    pygame.draw.rect(DISPLAY,BLACK,(659,479,252,17)) #HP BAR BORDER
+    pygame.draw.rect(DISPLAY, RED, (660, 480, 250, 15)) #RED IS UNDER THE GREEN 
+    pygame.draw.rect(DISPLAY, GREEN, (660, 480, currentpokemon.currentHP/maxHP1 * 250, 15)) #GREEN IS OVERLAPPING RED AND AS THE POKEMON TAKES DAMAGE THE GREEN WILL BE REDUCED RED WILL BE AS IT IS
 
+    DISPLAY.blit(maxHPtext1, (840, 500))
 
-def HPpokemon2(opposingpokemon, turn_damage = 0):
-    maxHP2 = opposingpokemon.HP
-    NewHP2 = maxHP2 - turn_damage
-    maxHPtext2 = font60.render(str(NewHP2), 0, "BLACK")
-    maxHPtext2 = pygame.transform.scale(maxHPtext2, (40, 20))
-
-    pygame.draw.rect(DISPLAY, RED, (140, 120, maxHP2, 15)) #RED IS UNDER THE GREEN 
-    pygame.draw.rect(DISPLAY, GREEN, (140, 120, NewHP2, 15)) #GREEN IS OVERLAPPING RED AND AS THE POKEMON TAKES DAMAGE THE GREEN WILL BE REDUCED RED WILL BE AS IT IS
-
-    DISPLAY.blit(maxHPtext2, (360, 140)) 
-
-def draw_battle_screen(currentpokemon, opposingpokemon):
-    DISPLAY.blit(battle_back, (0, 0))
-    load_sprites_text(currentpokemon, opposingpokemon)
-    HPpokemon1(currentpokemon, turn_damage = 0)
-    HPpokemon2(opposingpokemon, turn_damage = 0)
+    maxHP2 = opposingpokemon.maxHP
+    opposingpokemon.currentHP -= turn_damage
+    
+    maxHPtext2 = font30.render(f"{str(opposingpokemon.currentHP)}/{str(opposingpokemon.maxHP)}", 0, "BLACK")
 
 
+    pygame.draw.rect(DISPLAY,BLACK,(139,119,252,17)) #HP BAR BORDER
+    pygame.draw.rect(DISPLAY, RED, (140, 120, 250, 15)) #RED IS UNDER THE GREEN 
+    pygame.draw.rect(DISPLAY, GREEN, (140, 120, opposingpokemon.currentHP/maxHP2 * 250, 15)) #GREEN IS OVERLAPPING RED AND AS THE POKEMON TAKES DAMAGE THE GREEN WILL BE REDUCED RED WILL BE AS IT IS
+
+    DISPLAY.blit(maxHPtext2, (320, 140)) 
+    pygame.display.update()
 
 def show_moves(currentpokemon):
 
@@ -268,46 +279,75 @@ def show_moves(currentpokemon):
     DISPLAY.blit(pickyourmovetext,(600,625))
     return move_text_rect_list
 
+def turn_swapper(turn):
+    if turn == 1: return 2
+    elif turn == 2: return 1
 
+def clear_textbox():
+    DISPLAY.blit(TEXTBOX_image, (0, 550)) #text box at the bottom
+    pygame.display.update()
+
+def textbox_output(textbox_lines):
+    if len(textbox_lines) == 1:
+        line1 = font60.render(textbox_lines[0],0,'Black')
+        DISPLAY.blit(line1,(50,580))
+        pygame.display.update()
+        pygame.time.delay(500)
+
+    else:
+        for lineindex in range(len(textbox_lines)-1):
+            line1 = font60.render(textbox_lines[lineindex],0,'Black')
+            DISPLAY.blit(line1,(50,580))
+            pygame.display.update()
+            pygame.time.delay(500)
+            line2 = font60.render(textbox_lines[lineindex+1],0,'Black')
+            DISPLAY.blit(line2,(50,635))
+            pygame.display.update()
+            pygame.time.delay(500)
+            clear_textbox()
+
+        
+    
+        
 
 class Pokemon:
-    def __init__(self,name,HP,attack,defense,type_,moves,status=None):
+    def __init__(self,name,maxHP,attack,defense,type_,moves,status=None,currentHP=None):
         self.name=name
-        self.HP=HP
+        self.maxHP=maxHP
         self.attack=attack
         self.defense=defense
         self.type_ = type_
         self.moves = moves
         self.status = status
+        self.currentHP = maxHP
+        self.front_sprite=None
+        self.back_sprite=None
     
     def perform_attack(self, move_chosen_no, opposingpokemon, turn):
-        #print(f"{self.name} did {self.moves[move_chosen_no].name}")
+        textbox_lines = []
         move_chosen = self.moves[move_chosen_no]
-        # print(move_chosen.type_)
-        # print(type_matchups.loc[opposingpokemon.type_,'weaknesses'].split())
-        # print(self.attack)
-        # print(opposingpokemon.defense)
-        # print(move_chosen.damage)
-        # print(move_chosen.type_ in type_matchups.loc[opposingpokemon.type_,'weaknesses'].split(','))
+        textbox_lines.append(f"{self.name} used {move_chosen.name} !" )
         if move_chosen.type_ != 'Status':
             if move_chosen.type_ in type_matchups.loc[opposingpokemon.type_,'weaknesses'].split(','):
                 type_multiplier = 2
+                textbox_lines.append("It was Super Effective!")
             elif move_chosen.type_ in type_matchups.loc[opposingpokemon.type_,'resistances'].split(','):
                 type_multiplier = 0.5
+                textbox_lines.append("It was not very Effective...")
             elif move_chosen.type_ in type_matchups.loc[opposingpokemon.type_,'immunities'].split(','):
                 type_multiplier = 0
-            else: type_multiplier = 1
+                textbox_lines.append(f"{opposingpokemon.name} is immune to this attack.")
+            else: 
+                type_multiplier = 1
+                textbox_lines.extend(['hello','this is a test','to see','if this fn works well'])
         else:
             type_multiplier = 1
             move_chosen.damage = 80
-        turn_damage = ((self.attack/opposingpokemon.defense) * move_chosen.damage * type_multiplier)//4
+        turn_damage = int((self.attack/opposingpokemon.defense * move_chosen.damage//10) * type_multiplier)
+        
         print(f'{self.name} did {turn_damage} damage')
         
-        if turn == 1:
-            turn = 2
-        elif turn == 2:
-            turn = 1
-        return turn_damage,turn
+        return turn_damage ,textbox_lines
 
             
         
@@ -327,6 +367,7 @@ def main():
     player1choice='Choose Pokemon'
     player2choice='Choose Pokemon'
     turn=1
+    turn_damage = 0
     while game_status != 'quit':
         for event in pygame.event.get():
             if event.type == QUIT:
@@ -341,47 +382,72 @@ def main():
                 game_status='CHOOSE_PKMN'
                 potrait_rect_list = pkmn_selection_screen(player1choice,player2choice)
             
-            if event.type == BATTLE:
-                game_status='BATTLE'
-                player1pokemon,player2pokemon,player1pokemonbase,player2pokemonbase = \
-                      initialize_player_pokemon(player1choice,player2choice)
+            if event.type == INIT_BATTLE:
+                game_status='INIT_BATTLE'
+
+                player1pokemon,player2pokemon = initialize_player_pokemon(player1choice,player2choice)
                 player1pokemon,player2pokemon = initialize_moves(player1pokemon,player2pokemon)
+                player1pokemon,player2pokemon = initialize_sprites(player1pokemon,player2pokemon)
                 currentpokemon, opposingpokemon, turn = turn_handler(player1pokemon,player2pokemon,turn)
 
-                draw_battle_screen(currentpokemon, opposingpokemon)
+                pygame.event.post(pygame.event.Event(UPDATE_BATTLE_SCREEN))
 
+            if event.type == UPDATE_BATTLE_SCREEN:
+                game_status = 'UPDATE_BATTLE_SCREEN'
+                currentpokemon, opposingpokemon, turn = turn_handler(player1pokemon,player2pokemon,turn)
+                draw_battle_screen(currentpokemon, opposingpokemon)
+                pygame.event.post(pygame.event.Event(PICK_MOVE))
+
+            if event.type == PICK_MOVE:
+                game_status = 'PICK_MOVE'
                 move_text_rect_list = show_moves(currentpokemon)
+
+            if event.type == UPDATE_HP:
+                game_status = 'UPDATE_HP'
+                draw_pokemon_and_boxes(currentpokemon,opposingpokemon)
+                update_HP(currentpokemon, opposingpokemon, turn_damage)
+                pygame.time.delay(1000)
+                turn = turn_swapper(turn)
+                currentpokemon, opposingpokemon, turn = turn_handler(player1pokemon,player2pokemon,turn)
+                pygame.event.post(pygame.event.Event(SHOW_TEXTBOX_OUTPUT))
+
+            if event.type == SHOW_TEXTBOX_OUTPUT:
+                clear_textbox()
+                textbox_output(textbox_lines)
+                pygame.event.post(pygame.event.Event(UPDATE_BATTLE_SCREEN))
+
+                
+
 
                 
             if event.type == KEYDOWN:
-                if event.key==K_SPACE and game_status == 'START_SCREEN':
+                if (event.key==K_SPACE or event.key==K_RETURN) and game_status == 'START_SCREEN': #START GAME USING SPACE OR ENTER
                     pygame.event.post(pygame.event.Event(CHOOSE_PKMN))
                 if game_status == 'CHOOSE_PKMN':
                     player1choice,player2choice = take_user_input(event,player1choice,player2choice)
                     
-                    if event.key == K_RETURN and player1choice != 'Choose Pokemon' and player2choice != 'Choose Pokemon':  #Pressing Enter the Battle will begin
-                        pygame.event.post(pygame.event.Event(BATTLE))               
-
-                    #if player1choice != 'Choose Pokemon' and player2choice != 'Choose Pokemon':
-                        #pygame.event.post(pygame.event.Event(BATTLE))
+                    if (event.key == K_RETURN or event.key == K_SPACE) and player1choice != 'Choose Pokemon' and player2choice != 'Choose Pokemon':  #Pressing Enter the Battle will begin
+                        pygame.event.post(pygame.event.Event(INIT_BATTLE))               
 
             if event.type == MOUSEBUTTONDOWN:
-                if game_status == 'START_SCREEN':
+                if game_status == 'START_SCREEN': #START GAME USING MOUSE
                     pygame.event.post(pygame.event.Event(CHOOSE_PKMN))
-                if game_status == 'CHOOSE_PKMN':
+                
+                if game_status == 'CHOOSE_PKMN':  #SELECT POKEMON FROM SELECTION SCREEN USING MOUSE
                     i = 1
                     for potrait_rect in potrait_rect_list:
                         if potrait_rect.collidepoint(event.pos):
                                 player1choice,player2choice = set_player_choice(int(str(i)[-1]),player1choice,player2choice)    
                                 #the int(str(i[-1])) is to take last digit of every number since machamp is 10th                         
                         i+=1
-                if game_status == 'BATTLE':
+
+                if game_status == 'PICK_MOVE':
                     move_chosen_no = 0
                     for move_text_rect in move_text_rect_list:
                         if move_text_rect.collidepoint(event.pos):
 
-                            turn_damage, turn = currentpokemon.perform_attack(move_chosen_no, opposingpokemon,turn)
-                            pygame.event.post(pygame.event.Event(BATTLE))
+                            turn_damage , textbox_lines = currentpokemon.perform_attack(move_chosen_no, opposingpokemon,turn)
+                            pygame.event.post(pygame.event.Event(UPDATE_HP))
                         move_chosen_no+=1
                         
 
@@ -392,9 +458,6 @@ def main():
 
 if __name__=='__main__':
     main()
-#print(pkmn_stats)
-#print()
-#print(type_matchups)
 
-#player1=Pokemon(pkmn_stats.loc[0,'Name':'Defense'],pkmn_stats.loc[0,'Type'],pkmn_stats.loc[0,'Move1':'Move4'])
+
 
