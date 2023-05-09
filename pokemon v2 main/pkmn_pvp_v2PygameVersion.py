@@ -5,8 +5,10 @@ import pandas as pd
 import random as rnd
 import sys 
 from copy import deepcopy
+import time
+import os
 
-pygame.init()
+pygame.init() 
 
 #Load Dataframes
 pkmn_stats = pd.read_csv('pokemon v2 main/csv/pokemon_stats.csv') #Dataframe of all (10 included) Pokemon with HP,Attack,Defense,Type and Moves.
@@ -26,6 +28,7 @@ pygame.display.set_caption("POKEMON GAME")
 font30 = pygame.font.Font("pokemon v2 main/fonts/Pixeltype.ttf",30)
 font40 = pygame.font.Font("pokemon v2 main/fonts/Pixeltype.ttf",40)
 font60 = pygame.font.Font("pokemon v2 main/fonts/Pixeltype.ttf",60)
+font80 = pygame.font.Font("pokemon v2 main/fonts/Pixeltype.ttf",80)
 font100 = pygame.font.Font("pokemon v2 main/fonts/Pixeltype.ttf",100)
 
 #Colors
@@ -37,18 +40,21 @@ RED = (255, 0, 0)
 GRAY = (134,134,134)
 
 #FPS
-FPS = 60
+FPS = 60  
 CLOCK = pygame.time.Clock()
 
 #START SCREEN
-pkmn_background = pygame.image.load("pokemon v2 main/assets/gengar_pixels.jpeg").convert_alpha() #Pixel Art of a Gengar for the Start Screen, Spooky... 
+ashpikachu = pygame.image.load("pokemon v2 main/assets/ashpikachu.png").convert_alpha()
+ashpikachu = pygame.transform.scale(ashpikachu, (400, 500))
+pkmn_background = pygame.image.load("pokemon v2 main/assets/startscreen.png").convert_alpha() #Pixel Art of a Gengar for the Start Screen, Spooky... 
 pkmn_background = pygame.transform.scale(pkmn_background, DISPLAY_SIZE)
-pkmn_logo = pygame.image.load("pokemon v2 main/assets/pkmn_logo.png").convert_alpha() #Transparent, Black Pokemon Logo
-#pkmn_logo = pygame.transform.scale(pkmn_logo, (100,100))
+pkmn_logo = pygame.image.load("pokemon v2 main/assets/Pkmn_logo.png").convert_alpha() #Transparent, Black Pokemon Logo
+pkmn_logo = pygame.transform.scale(pkmn_logo, (600,600))
 blue_sky=pygame.image.load("pokemon v2 main/assets/blue_sky.jpg").convert() #Blue Sky for the PKMN selection screen.
 blue_sky=pygame.transform.scale(blue_sky, DISPLAY_SIZE) 
 TEXTBOX_image = pygame.image.load('pokemon v2 main/assets/textbox.png').convert_alpha()
 TEXTBOX_image = pygame.transform.scale(TEXTBOX_image, (1000, 150))
+
 
 #BATTLE SCREEN
 battle_back = pygame.image.load('pokemon v2 main/assets/background.png')
@@ -62,14 +68,28 @@ UPDATE_BATTLE_SCREEN = pygame.USEREVENT + 4
 PICK_MOVE = pygame.USEREVENT + 5
 UPDATE_HP = pygame.USEREVENT + 6
 SHOW_TEXTBOX_OUTPUT = pygame.USEREVENT + 7
+END_SCREEN = pygame.USEREVENT + 8
 
 
 def draw_start_screen():    #Draw the start screen, includes Start text, pokemon logo, and Gengar background.
     StartText=font60.render('PRESS SPACE TO START',0,'Black')
+    text = font60.render("CUSTOM                EDITION", 0, BLACK)
     DISPLAY.blit(pkmn_background, (0, 0))
-    DISPLAY.blit(pkmn_logo,(WIDTH//2-pkmn_logo.get_width()//2-WIDTH * 25/800, -30)) #WIDTH * 25/800 = 25 when WIDTH=800
-    DISPLAY.blit(StartText,(WIDTH//2-StartText.get_width()//2,HEIGHT-60))
+    
     pygame.display.update()
+    time.sleep(1)
+    DISPLAY.blit(pkmn_logo,(200, -220)) #WIDTH * 25/800 = 25 when WIDTH=800
+    pygame.display.update()
+    time.sleep(1)
+    DISPLAY.blit(ashpikachu, (260, 140))
+    pygame.display.update()
+    time.sleep(1)
+    DISPLAY.blit(text, (300, 340))
+    pygame.display.update()
+    time.sleep(1)
+    DISPLAY.blit(StartText,(WIDTH//2-StartText.get_width()//2,HEIGHT-50))
+
+
 
 def pkmn_selection_screen(player1choice,player2choice):
     toptext=font100.render("CHOOSE YOUR POKEMON!",0,'YELLOW')
@@ -201,6 +221,7 @@ def draw_battle_screen(currentpokemon, opposingpokemon,turn_damage=0):
     draw_pokemon_and_boxes(currentpokemon, opposingpokemon)
     update_HP(currentpokemon,opposingpokemon)
     
+    
 def draw_pokemon_and_boxes(currentpokemon,opposingpokemon):
     currentpokemon_name = currentpokemon.name
     opposingpokemon_name = opposingpokemon.name
@@ -259,8 +280,67 @@ def update_HP(currentpokemon, opposingpokemon, turn_damage = 0):
     pygame.draw.rect(DISPLAY, GREEN, (140, 120, opposingpokemon.currentHP/maxHP2 * 250, 15)) #GREEN IS OVERLAPPING RED AND AS THE POKEMON TAKES DAMAGE THE GREEN WILL BE REDUCED RED WILL BE AS IT IS
 
     DISPLAY.blit(maxHPtext2, (320, 140)) 
+    
+    if currentpokemon.currentHP <= 0:
+        End_Screen(currentpokemon, opposingpokemon)
+        clear_textbox()
+    elif opposingpokemon.currentHP <= 0:
+        End_Screen(currentpokemon, opposingpokemon)
+        clear_textbox()
     pygame.display.update()
 
+
+def End_Screen(currentpokemon, opposingpokemon):
+    End_img = pygame.image.load("pokemon v2 main/assets/textbox.png").convert_alpha()
+    End_img = pygame.transform.scale(End_img, (950, 500))
+    
+    menu = font80.render("MENU", 0, BLACK)
+    winner_surf = font60.render(currentpokemon.name + " WON", 0, WHITE)
+    loser_surf = font60.render(currentpokemon.name + " LOST", 0, WHITE)
+    
+    
+    if currentpokemon.currentHP <= 0:
+        loser = currentpokemon.name
+        print(loser, "LOST")
+        DISPLAY.blit(End_img, (30, 25))
+        DISPLAY.blit(menu, (440, 80))
+        pygame.draw.rect(DISPLAY, RED, (580, 140, 300, 80))
+        DISPLAY.blit(loser_surf, (600, 160))
+        winner_surf = font60.render(opposingpokemon.name + " WON", 0, WHITE)
+        pygame.draw.rect(DISPLAY, GREEN, (140, 140, 300, 80))
+        DISPLAY.blit(winner_surf, (150, 160))
+        
+    elif currentpokemon.currentHP > 0:
+        winner = currentpokemon.name
+        print(winner, "WON")
+        pygame.draw.rect(DISPLAY, GREEN, (140, 140, 300, 80))
+        DISPLAY.blit(winner_surf, (150, 120))
+        loser_surf = font60.render(opposingpokemon.name + " LOST", 0, WHITE)
+        pygame.draw.rect(DISPLAY, RED, (580, 140, 300, 80))
+        DISPLAY.blit(loser_surf, (600, 160))
+        
+    elif opposingpokemon.currentHP <= 0:
+        loser = opposingpokemon.name
+        print(loser, "LOST")
+        DISPLAY.blit(End_img, (30, 25))
+        DISPLAY.blit(menu, (440, 80))
+        pygame.draw.rect(DISPLAY, RED, (580, 140, 300, 80))
+        DISPLAY.blit(loser_surf, (600, 160))
+        winner_surf = font60.render(currentpokemon.name + " WON", 0, WHITE)
+        pygame.draw.rect(DISPLAY, GREEN, (140, 140, 300, 80))
+        DISPLAY.blit(winner_surf, (150, 160))
+        
+    elif opposingpokemon.currentHP > 0:
+        winner = opposingpokemon.name
+        print(winner, "WON")
+        pygame.draw.rect(DISPLAY, GREEN, (140, 140, 300, 80))
+        DISPLAY.blit(winner_surf, (150, 160))
+        loser_surf = font60.render(currentpokemon.name + " LOST", 0, WHITE)
+        pygame.draw.rect(DISPLAY, RED, (580, 140, 300, 80))
+        DISPLAY.blit(loser_surf, (600, 160))
+    
+    pygame.display.update()
+                                                
 def show_moves(currentpokemon):
 
     move_text_positions=((50,580),(325,580),(50,635),(325,635))
@@ -278,6 +358,8 @@ def show_moves(currentpokemon):
     DISPLAY.blit(trainertext,(600,580))
     DISPLAY.blit(pickyourmovetext,(600,625))
     return move_text_rect_list
+
+    
 
 def turn_swapper(turn):
     if turn == 1: return 2
@@ -306,10 +388,6 @@ def textbox_output(textbox_lines):
             pygame.time.delay(500)
             clear_textbox()
 
-        
-    
-        
-
 class Pokemon:
     def __init__(self,name,maxHP,attack,defense,type_,moves,status=None,currentHP=None):
         self.name=name
@@ -332,14 +410,13 @@ class Pokemon:
                 type_multiplier = 2
                 textbox_lines.append("It was Super Effective!")
             elif move_chosen.type_ in type_matchups.loc[opposingpokemon.type_,'resistances'].split(','):
-                type_multiplier = 0.5
+                type_multiplier = 0.5     
                 textbox_lines.append("It was not very Effective...")
             elif move_chosen.type_ in type_matchups.loc[opposingpokemon.type_,'immunities'].split(','):
                 type_multiplier = 0
                 textbox_lines.append(f"{opposingpokemon.name} is immune to this attack.")
             else: 
                 type_multiplier = 1
-                textbox_lines.extend(['hello','this is a test','to see','if this fn works well'])
         else:
             type_multiplier = 1
             move_chosen.damage = 80
@@ -349,10 +426,6 @@ class Pokemon:
         
         return turn_damage ,textbox_lines
 
-            
-        
-
-
 class Move:
     def __init__(self,name,type_,damage,turn_no,effects):
         self.name=name
@@ -360,7 +433,9 @@ class Move:
         self.damage = damage
         self.effects = effects
         self.turn_no=turn_no
-    
+
+
+
 def main():
     game_status = 'START_SCREEN'
     pygame.event.post(pygame.event.Event(START_SCREEN))
@@ -416,10 +491,6 @@ def main():
                 textbox_output(textbox_lines)
                 pygame.event.post(pygame.event.Event(UPDATE_BATTLE_SCREEN))
 
-                
-
-
-                
             if event.type == KEYDOWN:
                 if (event.key==K_SPACE or event.key==K_RETURN) and game_status == 'START_SCREEN': #START GAME USING SPACE OR ENTER
                     pygame.event.post(pygame.event.Event(CHOOSE_PKMN))
@@ -450,14 +521,13 @@ def main():
                             pygame.event.post(pygame.event.Event(UPDATE_HP))
                         move_chosen_no+=1
                         
-
-
+ 
+        
         pygame.display.update()
         CLOCK.tick(FPS)
 
 
 if __name__=='__main__':
     main()
-
 
 
