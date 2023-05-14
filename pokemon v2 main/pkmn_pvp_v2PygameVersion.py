@@ -2,21 +2,27 @@ import pygame
 from pygame.locals import *
 import numpy as np
 import pandas as pd
-import random as rnd
+import random 
 import sys 
 from copy import deepcopy
 import time
 import os
 
-pygame.init() 
+pygame.init()
 
 #Load Dataframes
 pkmn_stats = pd.read_csv('pokemon v2 main/csv/pokemon_stats.csv') #Dataframe of all (10 included) Pokemon with HP,Attack,Defense,Type and Moves.
 pkmn_stats.loc['Choose Pokemon','Name']='Choose Pokemon'
+
 type_matchups = pd.read_csv('pokemon v2 main/csv/type_matchups.csv').T #Stores all 12 types(included), with their weaknesses,resistances and immunities. 
 type_matchups.columns = ["weaknesses","resistances","immunities"] #assigns columns after transposing it
+
 moves_df=pd.read_csv('pokemon v2 main/csv/moves.csv') #stores moves with type, damage, and other parameters
 moves_df.index=moves_df.loc[:,'Name'] 
+
+status_moves_df=pd.read_csv('pokemon v2 main/csv/status_moves.csv')
+status_moves_df.index=status_moves_df.loc[:,'Name']
+
 
 #Display
 WIDTH,HEIGHT = 1000,700
@@ -71,22 +77,22 @@ SHOW_TEXTBOX_OUTPUT = pygame.USEREVENT + 7
 END_SCREEN = pygame.USEREVENT + 8
 
 
-def draw_start_screen():    #Draw the start screen, includes Start text, pokemon logo, and Gengar background.
+def draw_start_screen():    
     StartText=font60.render('PRESS SPACE TO START',0,'Black')
     text = font60.render("CUSTOM                EDITION", 0, BLACK)
     DISPLAY.blit(pkmn_background, (0, 0))
     
     pygame.display.update()
-    time.sleep(1)
+    pygame.time.delay(750)
     DISPLAY.blit(pkmn_logo,(200, -220)) #WIDTH * 25/800 = 25 when WIDTH=800
     pygame.display.update()
-    time.sleep(1)
+    pygame.time.delay(750)
     DISPLAY.blit(ashpikachu, (260, 140))
     pygame.display.update()
-    time.sleep(1)
+    pygame.time.delay(750)
     DISPLAY.blit(text, (300, 340))
     pygame.display.update()
-    time.sleep(1)
+    pygame.time.delay(750)
     DISPLAY.blit(StartText,(WIDTH//2-StartText.get_width()//2,HEIGHT-50))
 
 
@@ -185,13 +191,17 @@ def initialize_player_pokemon(player1choice,player2choice):
 def initialize_moves(player1pokemon,player2pokemon):
     player1moves=[]
     for move in player1pokemon.moves:
-        move=Move(*moves_df.loc[move,'Name':'Turn_no'],moves_df.loc[move,'Status Effect':'Status Chance'])
+        move = Move(*moves_df.loc[move,'Name':'Turn_no'],moves_df.loc[move,'Status Effect':'Status Chance'],moves_df.loc[move,'Recoil'])
+        if move.type_ == 'Status':
+            move = StatusMove(*status_moves_df.loc[move.name,:])
         player1moves.append(move)
     player1pokemon.moves=player1moves
     
     player2moves=[]
     for move in player2pokemon.moves:
-        move=Move(*moves_df.loc[move,'Name':'Turn_no'],moves_df.loc[move,'Status Effect':'Status Chance'])
+        move=Move(*moves_df.loc[move,'Name':'Turn_no'],moves_df.loc[move,'Status Effect':'Status Chance'],moves_df.loc[move,'Recoil'])
+        if move.type_ == 'Status':
+            move = StatusMove(*status_moves_df.loc[move.name,:])
         player2moves.append(move)
     player2pokemon.moves=player2moves
     
@@ -218,20 +228,23 @@ def turn_handler(player1pokemon,player2pokemon,turn=1):
 
 def draw_battle_screen(currentpokemon, opposingpokemon,turn_damage=0):
     DISPLAY.blit(battle_back, (0, 0))
-    draw_pokemon_and_boxes(currentpokemon, opposingpokemon)
+
+    draw_pokemon(currentpokemon, opposingpokemon)
+    draw_hp_and_text_boxes(currentpokemon, opposingpokemon)
     update_HP(currentpokemon,opposingpokemon)
-    
-    
-def draw_pokemon_and_boxes(currentpokemon,opposingpokemon):
-    currentpokemon_name = currentpokemon.name
-    opposingpokemon_name = opposingpokemon.name
+
+def draw_pokemon(currentpokemon,opposingpokemon):
 
     currentpokemon.back_sprite = pygame.transform.scale(currentpokemon.back_sprite, (400,400))
     opposingpokemon.front_sprite = pygame.transform.scale(opposingpokemon.front_sprite, (300,300))
 
-    Pkmn1HpBoxName = font40.render(currentpokemon_name, 0, "BLACK")
+    DISPLAY.blit(currentpokemon.back_sprite, (70, 230)) #actual pokemon sprites
+    DISPLAY.blit(opposingpokemon.front_sprite, (530,130))
+    
+def draw_hp_and_text_boxes(currentpokemon,opposingpokemon):
 
-    Pkmn2HpBoxName = font40.render(opposingpokemon_name, 0, "BLACK")
+    Pkmn1HpBoxName = font40.render(currentpokemon.name, 0, "BLACK")
+    Pkmn2HpBoxName = font40.render(opposingpokemon.name, 0, "BLACK")
 
     HPTEXT= font60.render("HP:", 0, "BLACK")
     HPTEXT = pygame.transform.scale(HPTEXT, (40, 20))
@@ -251,35 +264,46 @@ def draw_pokemon_and_boxes(currentpokemon,opposingpokemon):
 
     DISPLAY.blit(Pkmn2HpBoxName, (90, 80)) #name of pokemon inside the box
     DISPLAY.blit(Pkmn1HpBoxName, (610, 440))
+    DISPLAY.blit(TEXTBOX_image,(0,550))
 
-    DISPLAY.blit(currentpokemon.back_sprite, (70, 230)) #actual pokemon sprites
-    DISPLAY.blit(opposingpokemon.front_sprite, (530,130))
+    statusdict={'Burn':['BRN',RED],'Paralyze':['PAR',YELLOW],'Sleep':['SLP',GRAY],'Freeze':['FRZ','Blue']}
+    if currentpokemon.status:
+        status_text = statusdict[currentpokemon.status][0]
+        status_color=statusdict[currentpokemon.status][1]
+        status_text = font30.render(status_text,0,status_color)
+        DISPLAY.blit(status_text,(750, 444))
+        pygame.draw.rect(DISPLAY,status_color,(750-2, 444-2,status_text.get_width()+2,status_text.get_height()+2),width=1,border_radius=5)
     
-    DISPLAY.blit(TEXTBOX_image, (0, 550)) #text box at the bottom
+    if opposingpokemon.status:
+        status_text = statusdict[opposingpokemon.status][0]
+        status_color=statusdict[opposingpokemon.status][1]
+        status_text = font30.render(status_text,0,status_color)
+        DISPLAY.blit(status_text,(230, 84))
+        pygame.draw.rect(DISPLAY,status_color,(230-2, 84-2,status_text.get_width()+2,status_text.get_height()+2),width=1,border_radius=5)
+
     pygame.display.update()
 
 def update_HP(currentpokemon, opposingpokemon, turn_damage = 0):
+    
     maxHP1 = currentpokemon.maxHP
+    maxHP2 = opposingpokemon.maxHP
     
     maxHPtext1 = font30.render(f"{str(currentpokemon.currentHP)}/{str(currentpokemon.maxHP)}", 0, "BLACK")
+    maxHPtext2 = font30.render(f"{str(opposingpokemon.currentHP)}/{str(opposingpokemon.maxHP)}", 0, "BLACK")
 
     pygame.draw.rect(DISPLAY,BLACK,(659,479,252,17)) #HP BAR BORDER
     pygame.draw.rect(DISPLAY, RED, (660, 480, 250, 15)) #RED IS UNDER THE GREEN 
-    pygame.draw.rect(DISPLAY, GREEN, (660, 480, currentpokemon.currentHP/maxHP1 * 250, 15)) #GREEN IS OVERLAPPING RED AND AS THE POKEMON TAKES DAMAGE THE GREEN WILL BE REDUCED RED WILL BE AS IT IS
+    pygame.draw.rect(DISPLAY, GREEN, (660, 480, currentpokemon.currentHP/maxHP1 * 250, 15)) # GREEN IS OVERLAPPING RED AND AS 
+    DISPLAY.blit(maxHPtext1, (840, 500))                                                    # THE POKEMON TAKES DAMAGE THE GREEN 
+                                                                                            # WILL BE REDUCED RED WILL BE AS IT IS
 
-    DISPLAY.blit(maxHPtext1, (840, 500))
-
-    maxHP2 = opposingpokemon.maxHP
     opposingpokemon.currentHP -= turn_damage
     
-    maxHPtext2 = font30.render(f"{str(opposingpokemon.currentHP)}/{str(opposingpokemon.maxHP)}", 0, "BLACK")
-
-
     pygame.draw.rect(DISPLAY,BLACK,(139,119,252,17)) #HP BAR BORDER
     pygame.draw.rect(DISPLAY, RED, (140, 120, 250, 15)) #RED IS UNDER THE GREEN 
-    pygame.draw.rect(DISPLAY, GREEN, (140, 120, opposingpokemon.currentHP/maxHP2 * 250, 15)) #GREEN IS OVERLAPPING RED AND AS THE POKEMON TAKES DAMAGE THE GREEN WILL BE REDUCED RED WILL BE AS IT IS
-
-    DISPLAY.blit(maxHPtext2, (320, 140)) 
+    pygame.draw.rect(DISPLAY, GREEN, (140, 120, opposingpokemon.currentHP/maxHP2 * 250, 15)) # GREEN IS OVERLAPPING RED AND AS 
+    DISPLAY.blit(maxHPtext2, (320, 140))                                                     # THE POKEMON TAKES DAMAGE THE GREEN
+    pygame.display.update()
     
     if currentpokemon.currentHP <= 0:
         End_Screen(currentpokemon, opposingpokemon)
@@ -295,49 +319,60 @@ def End_Screen(currentpokemon, opposingpokemon):
     End_img = pygame.transform.scale(End_img, (950, 500))
     
     menu = font80.render("MENU", 0, BLACK)
-    winner_surf = font60.render(currentpokemon.name + " WON", 0, WHITE)
-    loser_surf = font60.render(currentpokemon.name + " LOST", 0, WHITE)
+    DISPLAY.blit(End_img, (30, 25))
+    DISPLAY.blit(menu, (440, 80))
     
-    
-    if currentpokemon.currentHP <= 0:
+    if currentpokemon.currentHP <=0:
         loser = currentpokemon.name
-        print(loser, "LOST")
-        DISPLAY.blit(End_img, (30, 25))
-        DISPLAY.blit(menu, (440, 80))
-        pygame.draw.rect(DISPLAY, RED, (580, 140, 300, 80))
-        DISPLAY.blit(loser_surf, (600, 160))
-        winner_surf = font60.render(opposingpokemon.name + " WON", 0, WHITE)
-        pygame.draw.rect(DISPLAY, GREEN, (140, 140, 300, 80))
-        DISPLAY.blit(winner_surf, (150, 160))
-        
-    elif currentpokemon.currentHP > 0:
-        winner = currentpokemon.name
-        print(winner, "WON")
-        pygame.draw.rect(DISPLAY, GREEN, (140, 140, 300, 80))
-        DISPLAY.blit(winner_surf, (150, 120))
-        loser_surf = font60.render(opposingpokemon.name + " LOST", 0, WHITE)
-        pygame.draw.rect(DISPLAY, RED, (580, 140, 300, 80))
-        DISPLAY.blit(loser_surf, (600, 160))
-        
-    elif opposingpokemon.currentHP <= 0:
-        loser = opposingpokemon.name
-        print(loser, "LOST")
-        DISPLAY.blit(End_img, (30, 25))
-        DISPLAY.blit(menu, (440, 80))
-        pygame.draw.rect(DISPLAY, RED, (580, 140, 300, 80))
-        DISPLAY.blit(loser_surf, (600, 160))
-        winner_surf = font60.render(currentpokemon.name + " WON", 0, WHITE)
-        pygame.draw.rect(DISPLAY, GREEN, (140, 140, 300, 80))
-        DISPLAY.blit(winner_surf, (150, 160))
-        
-    elif opposingpokemon.currentHP > 0:
         winner = opposingpokemon.name
-        print(winner, "WON")
-        pygame.draw.rect(DISPLAY, GREEN, (140, 140, 300, 80))
-        DISPLAY.blit(winner_surf, (150, 160))
-        loser_surf = font60.render(currentpokemon.name + " LOST", 0, WHITE)
-        pygame.draw.rect(DISPLAY, RED, (580, 140, 300, 80))
-        DISPLAY.blit(loser_surf, (600, 160))
+    elif opposingpokemon.currentHP <=0:
+        loser = opposingpokemon.name
+        winner = currentpokemon.name
+    
+    winner_surf = font60.render(winner + " WON", 0, WHITE)
+    loser_surf = font60.render(loser + " LOST", 0, WHITE)
+    pygame.draw.rect(DISPLAY, RED, (580, 140, 300, 80))
+    pygame.draw.rect(DISPLAY, GREEN, (140, 140, 300, 80))
+    DISPLAY.blit(loser_surf, (600, 160))
+    DISPLAY.blit(winner_surf, (150, 160))
+    
+    # if currentpokemon.currentHP <= 0:
+    #     loser = currentpokemon.name
+    #     print(loser, "LOST")
+    #     pygame.draw.rect(DISPLAY, RED, (580, 140, 300, 80))
+    #     DISPLAY.blit(loser_surf, (600, 160))
+    #     winner_surf = font60.render(opposingpokemon.name + " WON", 0, WHITE)
+    #     pygame.draw.rect(DISPLAY, GREEN, (140, 140, 300, 80))
+    #     DISPLAY.blit(winner_surf, (150, 160))
+        
+    # elif currentpokemon.currentHP > 0:
+    #     winner = currentpokemon.name
+    #     print(winner, "WON")
+    #     pygame.draw.rect(DISPLAY, GREEN, (140, 140, 300, 80))
+    #     DISPLAY.blit(winner_surf, (150, 120))
+    #     loser_surf = font60.render(opposingpokemon.name + " LOST", 0, WHITE)
+    #     pygame.draw.rect(DISPLAY, RED, (580, 140, 300, 80))
+    #     DISPLAY.blit(loser_surf, (600, 160))
+        
+    # elif opposingpokemon.currentHP <= 0:
+    #     loser = opposingpokemon.name
+    #     print(loser, "LOST")
+    #     DISPLAY.blit(End_img, (30, 25))
+    #     DISPLAY.blit(menu, (440, 80))
+    #     pygame.draw.rect(DISPLAY, RED, (580, 140, 300, 80))
+    #     DISPLAY.blit(loser_surf, (600, 160))
+    #     winner_surf = font60.render(currentpokemon.name + " WON", 0, WHITE)
+    #     pygame.draw.rect(DISPLAY, GREEN, (140, 140, 300, 80))
+    #     DISPLAY.blit(winner_surf, (150, 160))
+        
+    # elif opposingpokemon.currentHP > 0:
+    #     winner = opposingpokemon.name
+    #     print(winner, "WON")
+    #     pygame.draw.rect(DISPLAY, GREEN, (140, 140, 300, 80))
+    #     DISPLAY.blit(winner_surf, (150, 160))
+    #     loser_surf = font60.render(currentpokemon.name + " LOST", 0, WHITE)
+    #     pygame.draw.rect(DISPLAY, RED, (580, 140, 300, 80))
+    #     DISPLAY.blit(loser_surf, (600, 160))
     
     pygame.display.update()
                                                 
@@ -359,7 +394,14 @@ def show_moves(currentpokemon):
     DISPLAY.blit(pickyourmovetext,(600,625))
     return move_text_rect_list
 
-    
+def apply_status_effects(opposingpokemon, textbox_lines):
+    if opposingpokemon.status is None:
+        return opposingpokemon,textbox_lines
+    elif opposingpokemon.status == 'Burn':
+        opposingpokemon.currentHP -= opposingpokemon.currentHP/10
+        textbox_lines.append(f'{opposingpokemon.name} was hurt by its Burn.')
+
+    return opposingpokemon,textbox_lines
 
 def turn_swapper(turn):
     if turn == 1: return 2
@@ -388,6 +430,33 @@ def textbox_output(textbox_lines):
             pygame.time.delay(500)
             clear_textbox()
 
+
+def check_chance(chance):
+    if random.random() <= chance:
+        return True
+    return False
+    
+def check_type_effectiveness(move_chosen,opposingpokemon,textbox_lines):
+    if move_chosen.type_ in type_matchups.loc[opposingpokemon.type_,'weaknesses'].split(','):
+        type_multiplier = 2
+        textbox_lines.append("It was Super Effective!")
+    elif move_chosen.type_ in type_matchups.loc[opposingpokemon.type_,'resistances'].split(','):
+        type_multiplier = 0.5
+        textbox_lines.append("It was not very Effective...")
+    elif move_chosen.type_ in type_matchups.loc[opposingpokemon.type_,'immunities'].split(','):
+        type_multiplier = 0
+        textbox_lines.append(f"{opposingpokemon.name} is immune to this attack.")
+    else: 
+        type_multiplier = 1
+    return type_multiplier,textbox_lines
+
+def check_stab(currentpokemon,move_chosen):
+    if move_chosen.type_ == currentpokemon.type_:
+        return 1.5
+    else: 
+        return 1
+    
+
 class Pokemon:
     def __init__(self,name,maxHP,attack,defense,type_,moves,status=None,currentHP=None):
         self.name=name
@@ -400,41 +469,155 @@ class Pokemon:
         self.currentHP = maxHP
         self.front_sprite=None
         self.back_sprite=None
+        self.is_charging = 0
     
+    # def do_attack_animation(self,opposingpokemon):
+    #     DISPLAY.blit(battle_back, (0, 0))
+    #     draw_hp_and_text_boxes(self,opposingpokemon)
+    #     update_HP(self,opposingpokemon)
+    #     self.back_sprite = pygame.transform.scale(self.back_sprite, (400,400))
+    #     opposingpokemon.front_sprite = pygame.transform.scale(opposingpokemon.front_sprite, (300,300))
+
+    #     DISPLAY.blit(self.back_sprite, (70, 230))
+    #     #DISPLAY.blit(opposingpokemon.front_sprite, (530,130))
+    #     pygame.display.update()
+
+
     def perform_attack(self, move_chosen_no, opposingpokemon, turn):
+        
+        # self.do_attack_animation(opposingpokemon)
         textbox_lines = []
         move_chosen = self.moves[move_chosen_no]
-        textbox_lines.append(f"{self.name} used {move_chosen.name} !" )
-        if move_chosen.type_ != 'Status':
-            if move_chosen.type_ in type_matchups.loc[opposingpokemon.type_,'weaknesses'].split(','):
-                type_multiplier = 2
-                textbox_lines.append("It was Super Effective!")
-            elif move_chosen.type_ in type_matchups.loc[opposingpokemon.type_,'resistances'].split(','):
-                type_multiplier = 0.5     
-                textbox_lines.append("It was not very Effective...")
-            elif move_chosen.type_ in type_matchups.loc[opposingpokemon.type_,'immunities'].split(','):
-                type_multiplier = 0
-                textbox_lines.append(f"{opposingpokemon.name} is immune to this attack.")
-            else: 
-                type_multiplier = 1
-        else:
-            type_multiplier = 1
-            move_chosen.damage = 80
-        turn_damage = int((self.attack/opposingpokemon.defense * move_chosen.damage//10) * type_multiplier)
         
-        print(f'{self.name} did {turn_damage} damage')
+        do_turn, textbox_lines = self.check_move_inhibiting_status(textbox_lines)
+        
+        if do_turn:
+            textbox_lines.append(f"{self.name} used {move_chosen.name} !" )
+            
+            if move_chosen.type_ != 'Status':
+                if move_chosen.turn_count == move_chosen.turn_no:
+                    type_multiplier, textbox_lines = check_type_effectiveness(move_chosen,opposingpokemon,textbox_lines)
+                    stab = check_stab(self,move_chosen)
+                    move_chosen.turn_count = 1
+                    self.is_charging = 0
+
+                    status_effect = move_chosen.effects[0] 
+                    status_chance = move_chosen.effects[1]
+                    turn_damage = int((self.attack/opposingpokemon.defense * move_chosen.damage//8) * type_multiplier * stab)
+                    
+                    if status_chance:
+                        if check_chance(status_chance) and opposingpokemon.status is None:
+                            opposingpokemon.status = status_effect
+                            textbox_lines.append(f'{opposingpokemon.name} was inflicted with {status_effect}')
+                            if opposingpokemon.status == 'Burn': opposingpokemon.attack *= 0.75
+                    
+                    if move_chosen.recoil:
+                        self.currentHP -= int(move_chosen.recoil * turn_damage)
+                        textbox_lines.append(f"{self.name} was hurt in recoil")
+                    print(f'{self.name} did {turn_damage} damage')
+                
+                else:
+                        turn_damage = 0
+                        textbox_lines.append(f'{self.name} is charging for its attack.')
+                        move_chosen.turn_count += 1
+                        self.is_charging = move_chosen_no
+                
+            elif move_chosen.type_ == 'Status':
+                textbox_lines = self.perform_status_move(move_chosen,opposingpokemon,textbox_lines)  
+                turn_damage = 0
+            
+        else: turn_damage = 0
+        if opposingpokemon.status == 'Burn':
+            opposingpokemon.currentHP -= int(opposingpokemon.maxHP * 0.1)
+            textbox_lines.append(f'{opposingpokemon.name} was hurt by its Burn.')
         
         return turn_damage ,textbox_lines
 
+    def perform_status_move(self,move_chosen,opposingpokemon,textbox_lines):
+        if move_chosen.category == 'SelfBoost':
+                if move_chosen.effect == 'Attack':
+                    print(self.attack)
+                    self.attack *= 1.5
+                    print(self.attack)
+                    textbox_lines.append(f"{self.name}'s Attack Sharply Rose!")
+                if move_chosen.effect == 'Defense':
+                    self.defense *= 1.5
+                    textbox_lines.append(f"{self.name}'s Defense Sharply Rose!")
+                if move_chosen.effect == 'Attack,Defense':
+                    self.attack *= 1.25
+                    self.defense *= 1.25
+                    textbox_lines.append(f"{self.name}'s Attack and Defense Rose")
+                if move_chosen.effect == 'Heal':
+                    self.currentHP += self.maxHP/2
+                    if self.currentHP >= self.maxHP: self.currentHP = self.maxHP
+                    textbox_lines.append(f"{self.name}'s gained some Health")
+
+        if move_chosen.category == 'StatusEffect':
+            if opposingpokemon.status is None:
+                if move_chosen.effect == 'Paralyze':
+                    opposingpokemon.status = 'Paralyze'
+                    textbox_lines.append(f'{opposingpokemon.name} was paralyzed.')
+                if move_chosen.effect == 'Sleep':
+                    opposingpokemon.status = 'Sleep'
+                    textbox_lines.append(f'{opposingpokemon.name} fell asleep.')
+                if move_chosen.effect == 'Immobilise':
+                    opposingpokemon.status = 'Immobilise'
+                    textbox_lines.append(f'{opposingpokemon.name} was immobilised by attraction.')
+            else: 
+                textbox_lines.append(f'{opposingpokemon.name} is already {opposingpokemon.status}.')
+        
+        return textbox_lines
+
+    def check_move_inhibiting_status(self,textbox_lines):
+        if self.status == 'Sleep':
+            if check_chance(0.4):
+                textbox_lines.append(f'{self.name} Woke up!')
+                self.status = None
+            else:
+                textbox_lines.append(f'{self.name} is fast asleep.')
+                return 0, textbox_lines
+        
+        if self.status == 'Paralyze':
+            if check_chance(0.7):
+                pass
+            else:
+                textbox_lines.append(f'{self.name} could not move due to paralysis.')
+                return 0, textbox_lines
+        
+        if self.status == 'Immobilise':
+            if check_chance(0.35):
+                textbox_lines.append(f'{self.name} broke out of its attraction')
+                self.status = None
+            else:
+                textbox_lines.append(f'{self.name} is immobilised by attraction.')
+                return 0, textbox_lines
+        
+        if self.status == 'Freeze':
+            if check_chance(0.4):
+                textbox_lines.append(f'{self.name} was unfrozen')
+                self.status = None
+            else:
+                textbox_lines.append(f'{self.name} is frozen.')
+                return 0,textbox_lines
+
+        return True, textbox_lines
+
 class Move:
-    def __init__(self,name,type_,damage,turn_no,effects):
-        self.name=name
+    def __init__(self,name,type_,damage,turn_no,effects,recoil):
+        self.name = name
         self.type_ = type_
         self.damage = damage
         self.effects = effects
-        self.turn_no=turn_no
+        self.turn_no = turn_no
+        self.recoil = recoil
+        self.turn_count = 1
 
-
+class StatusMove:
+    def __init__(self,name,type_,category,effect):
+        self.name = name
+        self.type_ = type_
+        self.category = category
+        self.effect = effect
 
 def main():
     game_status = 'START_SCREEN'
@@ -475,11 +658,16 @@ def main():
 
             if event.type == PICK_MOVE:
                 game_status = 'PICK_MOVE'
-                move_text_rect_list = show_moves(currentpokemon)
+                if not currentpokemon.is_charging:
+                    move_text_rect_list = show_moves(currentpokemon)
+                else:
+                    turn_damage , textbox_lines = currentpokemon.perform_attack(currentpokemon.is_charging, opposingpokemon,turn)
+                    pygame.event.post(pygame.event.Event(UPDATE_HP))
 
             if event.type == UPDATE_HP:
                 game_status = 'UPDATE_HP'
-                draw_pokemon_and_boxes(currentpokemon,opposingpokemon)
+                draw_pokemon(currentpokemon,opposingpokemon)
+                draw_hp_and_text_boxes(currentpokemon,opposingpokemon)
                 update_HP(currentpokemon, opposingpokemon, turn_damage)
                 pygame.time.delay(1000)
                 turn = turn_swapper(turn)

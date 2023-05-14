@@ -1,0 +1,9 @@
+Name,Type,Category,Effect
+Dragon Dance,Status,SelfBoost,Attack
+Iron Defense,Status,SelfBoost,Defense
+Sleep Powder,Status,StatusEffect,Sleep
+Calm Mind,Status,SelfBoost,"Attack,Defense"
+Bulk Up,Status,SelfBoost,Attack
+Roost,Status,SelfBoost,Heal
+Attract,Status,StatusEffect,Immobilise
+Thunder Wave,Status,StatusEffect,Paralyze
