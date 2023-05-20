@@ -1,4 +1,4 @@
 Fire,Water,Grass,Normal,Electric,Ghost,Psychic,Fighting,Flying,Rock,Ice,Ground,Steel
-"Water,Rock,Ground","Grass,Electric","Fire,Flying,Ice",Fighting,Rock,Ghost,Ghost,"Flying,Psychic","Electric,Rock,Ice","Fighting,Grass,Ground","Fighting,Rock,Fire","Water,Grass,Ice","Fighting,Fire,Ground"
-"Fire,Grass,Ice","Water,Fire,Ice","Water,Electric,Grass",None,"Electric,Flying",None,"Fighting,Psychic",Rock,"Grass,Fighting","Normal,Fire,Flying",Ice,Rock,"Normal,Electric,Steel,Flying,Rock,Grass,Psychic"
+"Water,Rock,Ground","Grass,Electric","Fire,Flying,Ice",Fighting,Ground,Ghost,Ghost,"Flying,Psychic","Electric,Rock,Ice","Fighting,Grass,Ground,Water","Fighting,Rock,Fire,Steel","Water,Grass,Ice","Fighting,Fire,Ground"
+"Fire,Grass,Ice,Steel","Water,Fire,Ice","Water,Electric,Grass,Ground",None,"Electric,Flying,Steel",None,"Fighting,Psychic",Rock,"Grass,Fighting","Normal,Fire,Flying",Ice,Rock,"Normal,Electric,Steel,Flying,Rock,Grass"
 None,None,None,Ghost,None,"Normal,Fighting",None,None,Ground,None,None,Electric,None

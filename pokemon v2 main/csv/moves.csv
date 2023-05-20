@@ -1,29 +1,29 @@
-Name,Type,Damage,Turn_no,Status Effect,Status Chance,Recoil
-Flamethrower,Fire,90,1,Burn,0.1,0
-Hydro Pump,Water,90,1,0,0,0
-Solar Beam,Grass,150,2,0,0,0
-Leaf Storm,Grass,90,1,0,0,0
-Thunderbolt,Electric,90,1,Paralyze,0.1,0
-Stone Edge,Rock,90,1,0,0,0
-Earthquake,Ground,120,1,0,0,0
-Shadow Ball,Ghost,100,1,0,0,0
-Air Slash,Flying,90,1,0,0,0
-Mega Punch,Fighting,110,1,0,0,0
-Surf,Water,80,1,0,0,0
-Thunder Wave,Electric,0,1,0,0,0
-Ice Beam,Ice,100,1,Freeze,0.05,0
-Dragon Dance,Status,0,1,0,0,0
-Take Down,Normal,110,1,0,0,0.3
-Iron Defense,Status,0,1,0,0,0
-Attract,Status,0,1,Immobilise,1,0
-Fly,Flying,80,2,0,0,0
-Sleep Powder,Status,0,1,Sleep,1,0
-Lick,Normal,70,1,Paralyze,0.5,0
-Roost,Status,0,1,0,1,0
-Psychic,Psychic,100,1,0,0,0
-Calm Mind,Status,0,1,0,0,0
-Bulk Up,Status,0,1,0,0,0
-Crunch,Dark,80,1,0,0,0
-Double-Edge,Normal,120,1,0,0,0.3
-Iron Tail,Steel,100,1,0,0,0
-Giga Impact,Steel,150,1,0,0,0
+Name,Type,Damage,Turn_no,Status Effect,Status Chance,Accuracy,Recoil
+Flamethrower,Fire,90,1,Burn,0.1,0.9,0
+Hydro Pump,Water,90,1,0,0,0.9,0
+Solar Beam,Grass,150,2,0,0,0.9,0
+Leaf Storm,Grass,90,1,0,0,0.9,0
+Thunderbolt,Electric,90,1,Paralyze,0.1,0.9,0
+Stone Edge,Rock,90,1,0,0,0.8,0
+Earthquake,Ground,120,1,0,0,1,0
+Shadow Ball,Ghost,100,1,0,0,0.9,0
+Air Slash,Flying,90,1,0,0,1,0
+Mega Punch,Fighting,110,1,0,0,1,0
+Surf,Water,80,1,0,0,0.8,0
+Thunder Wave,Status,0,1,0,0,0.8,0
+Ice Beam,Ice,100,1,Freeze,0.05,0.8,0
+Dragon Dance,Status,0,1,0,0,1,0
+Take Down,Normal,110,1,0,0,1,0.3
+Iron Defense,Status,0,1,0,0,1,0
+Attract,Status,0,1,Immobilise,1,1,0
+Fly,Flying,80,2,0,0,1,0
+Sleep Powder,Status,0,1,Sleep,1,0.75,0
+Lick,Normal,70,1,Paralyze,0.5,0.8,0
+Roost,Status,0,1,0,1,1,0
+Psychic,Psychic,100,1,0,0,1,0
+Calm Mind,Status,0,1,0,0,1,0
+Bulk Up,Status,0,1,0,0,1,0
+Crunch,Dark,80,1,0,0,1,0
+Double-Edge,Normal,120,1,0,0,1,0.3
+Iron Tail,Steel,100,1,0,0,1,0
+Giga Impact,Steel,150,1,0,0,1,0
