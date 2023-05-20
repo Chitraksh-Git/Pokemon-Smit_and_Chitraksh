@@ -78,13 +78,10 @@ UPDATE_HP = pygame.USEREVENT + 6
 SHOW_TEXTBOX_OUTPUT = pygame.USEREVENT + 7
 CHECK_WINNER = pygame.USEREVENT + 8
 END_SCREEN = pygame.USEREVENT + 9
-<<<<<<< HEAD
 
 #MUSIC
 mixer.music.load("pokemon v2 main/Game.mp3")
 mixer.music.set_volume(0.7)
-=======
->>>>>>> 211af53416054a74ba2d0a508c73b3f46e335968
 
 
 def draw_start_screen():  
@@ -332,18 +329,8 @@ def update_HP(currentpokemon, opposingpokemon, turn_damage = 0):
 def End_Screen(currentpokemon, opposingpokemon):
     End_img = pygame.image.load("pokemon v2 main/assets/textbox.png").convert_alpha()
     End_img = pygame.transform.scale(End_img, (950, 550))
-<<<<<<< HEAD
-<<<<<<< HEAD
     result = font60.render("BATTLE RESULT!", 0, BLACK)
 
-=======
-    
-    result = font60.render("BATTLE RESULT!", 0, BLACK)
->>>>>>> 211af53416054a74ba2d0a508c73b3f46e335968
-=======
-    
-    result = font60.render("BATTLE RESULT!", 0, BLACK)
->>>>>>> 211af53416054a74ba2d0a508c73b3f46e335968
     restart = font60.render("PRESS R TO PLAY AGAIN!", 0, 'Blue')
 
     DISPLAY.blit(End_img, (30, 15))
@@ -673,6 +660,8 @@ def main():
                 sys.exit()
 
             if event.type == START_SCREEN:
+                mixer.music.load("pokemon v2 main/Game.mp3")
+                mixer.music.set_volume(0.7)
                 mixer.music.play(-1)
                 draw_start_screen()
 
@@ -691,6 +680,7 @@ def main():
                 mixer.music.load("pokemon v2 main/Pkmn_Battle.mp3")
                 mixer.music.set_volume(0.7)
                 mixer.music.play(-1)
+
             if event.type == UPDATE_BATTLE_SCREEN:
                 game_status = 'UPDATE_BATTLE_SCREEN'
                 currentpokemon, opposingpokemon, turn = turn_handler(player1pokemon,player2pokemon,turn)
