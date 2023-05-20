@@ -317,13 +317,14 @@ def End_Screen(currentpokemon, opposingpokemon):
     End_img = pygame.image.load("pokemon v2 main/assets/textbox.png").convert_alpha()
     End_img = pygame.transform.scale(End_img, (950, 550))
     
-
+    result = font60.render("BATTLE RESULT!", 0, BLACK)
     restart = font60.render("PRESS R TO PLAY AGAIN!", 0, 'Blue')
 
     DISPLAY.blit(End_img, (30, 15))
     
 
     DISPLAY.blit(restart, (300, 450))
+    DISPLAY.blit(result, (360, 100))
     pygame.draw.rect(DISPLAY, "Blue", (300-8, 450-8,restart.get_width()+8,restart.get_height()+2),width=2,border_radius=5)
     
     if currentpokemon.currentHP <=0:
