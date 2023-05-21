@@ -78,7 +78,10 @@ UPDATE_HP = pygame.USEREVENT + 6
 SHOW_TEXTBOX_OUTPUT = pygame.USEREVENT + 7
 CHECK_WINNER = pygame.USEREVENT + 8
 END_SCREEN = pygame.USEREVENT + 9
+<<<<<<< HEAD
 
+=======
+>>>>>>> c61bafe4d5ec59229e135a29622720eaa3fe8fd3
 
 #MUSIC
 mixer.music.load("pokemon v2 main/Game.mp3")
@@ -112,23 +115,29 @@ def pkmn_selection_screen(player1choice,player2choice):
 
     starttext = font100.render("PRESS ENTER TO START YOUR BATTLE!!", 0, "GREEN")
     starttext = pygame.transform.scale(starttext, (600, 40))
-    
+
+
     player1text=font60.render(f"Player1:{pkmn_stats.loc[player1choice,'Name']}",0,'White') #render() has 3 required arguments:
     player2text=font60.render(f"Player2:{pkmn_stats.loc[player2choice,'Name']}",0,'White') #1.Text to render
                                                                                             #2.Whether to Anti-Alias
                                                                                             #3.Color of text
+    randomtext=font60.render('Pick Random',0,'Black')
+    randomrect = randomtext.get_rect(topleft = (600,125))
+
     DISPLAY.blit(blue_sky,(0,0))
     DISPLAY.blit(toptext,toptextrect)
     DISPLAY.blit(player1text,(10,100))
     DISPLAY.blit(player2text,(10,150))
-    DISPLAY.blit(starttext, (200, 200))
+    DISPLAY.blit(starttext, (200, 220))
+    DISPLAY.blit(randomtext, randomrect)
+    pygame.draw.rect(DISPLAY, BLACK, (randomrect.x -4, randomrect.y -4, randomrect.width +4 , randomrect.height +4), width=2, border_radius=5)
     
     
     potrait_rect_list=[]
     for i in range(1,6):
         pokemon_potrait = pygame.image.load(f'pokemon v2 main/assets/potraits/{i}.png').convert_alpha()
         pokemon_potrait = pygame.transform.scale(pokemon_potrait,(120,120))
-        potrait_rect=pokemon_potrait.get_rect(center=(WIDTH*i/5-WIDTH/10,300))
+        potrait_rect=pokemon_potrait.get_rect(center=(WIDTH*i/5-WIDTH/10,350))
         potrait_rect_list.append(potrait_rect)
         DISPLAY.blit(pokemon_potrait,potrait_rect)
 
@@ -136,7 +145,7 @@ def pkmn_selection_screen(player1choice,player2choice):
     for i in range(6,11):
         pokemon_potrait = pygame.image.load(f'pokemon v2 main/assets/potraits/{i}.png').convert_alpha()
         pokemon_potrait = pygame.transform.scale(pokemon_potrait,(120,120))
-        potrait_rect=pokemon_potrait.get_rect(center=(WIDTH*(i-5)/5-WIDTH/10,500))
+        potrait_rect=pokemon_potrait.get_rect(center=(WIDTH*(i-5)/5-WIDTH/10,550))
         potrait_rect_list2.append(potrait_rect)
         DISPLAY.blit(pokemon_potrait,potrait_rect)
 
@@ -156,7 +165,7 @@ def pkmn_selection_screen(player1choice,player2choice):
         DISPLAY.blit(player2potrait,(360,140))
 
     pygame.display.update()
-    return potrait_rect_list
+    return potrait_rect_list, randomrect
     
     
 def take_user_input(event,player1choice,player2choice):
@@ -191,7 +200,7 @@ def set_player_choice(choice,player1choice,player2choice):
         pkmn_selection_screen(player1choice,player2choice)
     if player1choice == player2choice:
         change = font30.render("Please choose different Pokemons!", 0, RED)
-        DISPLAY.blit(change, (450, 130))
+        DISPLAY.blit(change, (450, 170))
         
     return player1choice,player2choice
     
@@ -324,7 +333,10 @@ def update_HP(currentpokemon, opposingpokemon, turn_damage = 0):
 def End_Screen(currentpokemon, opposingpokemon):
     End_img = pygame.image.load("pokemon v2 main/assets/textbox.png").convert_alpha()
     End_img = pygame.transform.scale(End_img, (950, 550))
+<<<<<<< HEAD
 
+=======
+>>>>>>> c61bafe4d5ec59229e135a29622720eaa3fe8fd3
     result = font60.render("BATTLE RESULT!", 0, BLACK)
 
     restart = font60.render("PRESS R TO PLAY AGAIN!", 0, 'Blue')
@@ -656,12 +668,14 @@ def main():
                 sys.exit()
 
             if event.type == START_SCREEN:
+                mixer.music.load("pokemon v2 main/Game.mp3")
+                mixer.music.set_volume(0.7)
                 mixer.music.play(-1)
                 draw_start_screen()
 
             if event.type == CHOOSE_PKMN:
                 game_status='CHOOSE_PKMN'
-                potrait_rect_list = pkmn_selection_screen(player1choice,player2choice)
+                potrait_rect_list, randomrect = pkmn_selection_screen(player1choice,player2choice)
             
             if event.type == INIT_BATTLE:
                 game_status='INIT_BATTLE'
@@ -674,6 +688,7 @@ def main():
                 mixer.music.load("pokemon v2 main/Pkmn_Battle.mp3")
                 mixer.music.set_volume(0.7)
                 mixer.music.play(-1)
+
             if event.type == UPDATE_BATTLE_SCREEN:
                 game_status = 'UPDATE_BATTLE_SCREEN'
                 currentpokemon, opposingpokemon, turn = turn_handler(player1pokemon,player2pokemon,turn)
@@ -694,6 +709,7 @@ def main():
                 draw_hp_and_text_boxes(currentpokemon,opposingpokemon)
                 update_HP(currentpokemon, opposingpokemon, turn_damage)
                 pygame.time.delay(1000)
+                
                 turn = turn_swapper(turn)
                 currentpokemon, opposingpokemon, turn = turn_handler(player1pokemon,player2pokemon,turn)
                 pygame.event.post(pygame.event.Event(SHOW_TEXTBOX_OUTPUT))
@@ -713,6 +729,7 @@ def main():
             if event.type == KEYDOWN:
                 if (event.key==K_SPACE) and game_status == 'START_SCREEN': #START GAME USING SPACE 
                     pygame.event.post(pygame.event.Event(CHOOSE_PKMN))
+                
                 if game_status == 'CHOOSE_PKMN':
                     player1choice,player2choice = take_user_input(event,player1choice,player2choice)
                     
@@ -731,7 +748,8 @@ def main():
                                     player1choice,player2choice = set_player_choice(int(str(i)[-1]),player1choice,player2choice)    
                                     #the int(str(i[-1])) is to take last digit of every number since machamp is 10th                         
                             i+=1
-
+                        if randomrect.collidepoint(event.pos):
+                            player1choice,player2choice = set_player_choice(random.randint(0,9),player1choice,player2choice)
                     if game_status == 'PICK_MOVE':
                         move_chosen_no = 0
                         for move_text_rect in move_text_rect_list:
