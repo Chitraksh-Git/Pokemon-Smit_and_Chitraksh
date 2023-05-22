@@ -78,14 +78,6 @@ UPDATE_HP = pygame.USEREVENT + 6
 SHOW_TEXTBOX_OUTPUT = pygame.USEREVENT + 7
 CHECK_WINNER = pygame.USEREVENT + 8
 END_SCREEN = pygame.USEREVENT + 9
-<<<<<<< HEAD
-
-=======
->>>>>>> c61bafe4d5ec59229e135a29622720eaa3fe8fd3
-
-#MUSIC
-mixer.music.load("pokemon v2 main/Game.mp3")
-mixer.music.set_volume(0.7)
 
 
 def draw_start_screen():  
@@ -333,10 +325,7 @@ def update_HP(currentpokemon, opposingpokemon, turn_damage = 0):
 def End_Screen(currentpokemon, opposingpokemon):
     End_img = pygame.image.load("pokemon v2 main/assets/textbox.png").convert_alpha()
     End_img = pygame.transform.scale(End_img, (950, 550))
-<<<<<<< HEAD
 
-=======
->>>>>>> c61bafe4d5ec59229e135a29622720eaa3fe8fd3
     result = font60.render("BATTLE RESULT!", 0, BLACK)
 
     restart = font60.render("PRESS R TO PLAY AGAIN!", 0, 'Blue')
