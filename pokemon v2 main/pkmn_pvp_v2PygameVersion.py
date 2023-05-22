@@ -190,9 +190,6 @@ def set_player_choice(choice,player1choice,player2choice):
     else:
         player2choice =  choice
         pkmn_selection_screen(player1choice,player2choice)
-    if player1choice == player2choice:
-        change = font30.render("Please choose different Pokemons!", 0, RED)
-        DISPLAY.blit(change, (450, 170))
         
     return player1choice,player2choice
     
@@ -323,6 +320,9 @@ def update_HP(currentpokemon, opposingpokemon, turn_damage = 0):
     pygame.display.update()
 
 def End_Screen(currentpokemon, opposingpokemon):
+    mixer.music.load("pokemon v2 main/Music/End_Game.mp3")
+    mixer.music.set_volume(1)
+    mixer.music.play()
     End_img = pygame.image.load("pokemon v2 main/assets/textbox.png").convert_alpha()
     End_img = pygame.transform.scale(End_img, (950, 550))
 
@@ -657,7 +657,7 @@ def main():
                 sys.exit()
 
             if event.type == START_SCREEN:
-                mixer.music.load("pokemon v2 main/Game.mp3")
+                mixer.music.load("pokemon v2 main/Music/Game.mp3")
                 mixer.music.set_volume(0.7)
                 mixer.music.play(-1)
                 draw_start_screen()
@@ -674,7 +674,7 @@ def main():
                 player1pokemon,player2pokemon = initialize_sprites(player1pokemon,player2pokemon)
                 currentpokemon, opposingpokemon, turn = turn_handler(player1pokemon,player2pokemon,turn)
                 pygame.event.post(pygame.event.Event(UPDATE_BATTLE_SCREEN))
-                mixer.music.load("pokemon v2 main/Pkmn_Battle.mp3")
+                mixer.music.load("pokemon v2 main/Music/Pkmn_Battle.mp3")
                 mixer.music.set_volume(0.7)
                 mixer.music.play(-1)
 
