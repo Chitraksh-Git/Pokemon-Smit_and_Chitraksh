@@ -79,6 +79,7 @@ SHOW_TEXTBOX_OUTPUT = pygame.USEREVENT + 7
 CHECK_WINNER = pygame.USEREVENT + 8
 END_SCREEN = pygame.USEREVENT + 9
 
+button_sound = pygame.mixer.Sound('pokemon v2 main/Music/button sound.mp3')
 
 def draw_start_screen():  
     mixer.music.play(-1)  
@@ -163,24 +164,34 @@ def pkmn_selection_screen(player1choice,player2choice):
 def take_user_input(event,player1choice,player2choice):
     if event.key == K_1:
         player1choice,player2choice = set_player_choice(1,player1choice,player2choice)
+        button_sound.play()
     if event.key == K_2:
         player1choice,player2choice = set_player_choice(2,player1choice,player2choice)
+        button_sound.play()
     if event.key == K_3:
         player1choice,player2choice = set_player_choice(3,player1choice,player2choice)
+        button_sound.play()
     if event.key == K_4:
         player1choice,player2choice = set_player_choice(4,player1choice,player2choice)
+        button_sound.play()
     if event.key == K_5:
         player1choice,player2choice = set_player_choice(5,player1choice,player2choice)
+        button_sound.play()
     if event.key == K_6:
         player1choice,player2choice = set_player_choice(6,player1choice,player2choice)
+        button_sound.play()
     if event.key == K_7:
         player1choice,player2choice = set_player_choice(7,player1choice,player2choice)
+        button_sound.play()
     if event.key == K_8:
         player1choice,player2choice = set_player_choice(8,player1choice,player2choice)
+        button_sound.play()
     if event.key == K_9:
         player1choice,player2choice = set_player_choice(9,player1choice,player2choice)
+        button_sound.play()
     if event.key == K_0:
         player1choice,player2choice = set_player_choice(0,player1choice,player2choice)
+        button_sound.play()
     return player1choice,player2choice
 
 def set_player_choice(choice,player1choice,player2choice):
@@ -466,7 +477,7 @@ class Pokemon:
         self.attack_modifier = 0 
         self.defense_modifier = 0 
 
-    #def do_attack_animation(self,opposingpokemon):
+    # def do_attack_animation(self,opposingpokemon):
     #    DISPLAY.blit(battle_back, (0, 0))
     #    draw_hp_and_text_boxes(self,opposingpokemon)
     #    update_HP(self,opposingpokemon)
@@ -476,7 +487,8 @@ class Pokemon:
     #    DISPLAY.blit(self.back_sprite, (70, 230))
     #    DISPLAY.blit(opposingpokemon.front_sprite, (530,130))
     #    pygame.display.update()
-
+    #    DISPLAY.blit(opposingpokemon.front_sprite, (540,130))
+    #    pygame.display.update()
 
     def perform_attack(self, move_chosen_no, opposingpokemon, turn):
         
@@ -718,27 +730,32 @@ def main():
             if event.type == KEYDOWN:
                 if (event.key==K_SPACE) and game_status == 'START_SCREEN': #START GAME USING SPACE 
                     pygame.event.post(pygame.event.Event(CHOOSE_PKMN))
+                    button_sound.play()
                 
                 if game_status == 'CHOOSE_PKMN':
                     player1choice,player2choice = take_user_input(event,player1choice,player2choice)
                     
                     if (event.key == K_RETURN) and player1choice != 'Choose Pokemon' and player2choice != 'Choose Pokemon':  #Pressing Enter the Battle will begin
-                        pygame.event.post(pygame.event.Event(INIT_BATTLE))               
+                        pygame.event.post(pygame.event.Event(INIT_BATTLE))
+                        button_sound.play()               
 
             if event.type == MOUSEBUTTONDOWN:
                 if event.button == 1:
                     if game_status == 'START_SCREEN': #START GAME USING MOUSE
                         pygame.event.post(pygame.event.Event(CHOOSE_PKMN))
+                        button_sound.play()
                     
                     if game_status == 'CHOOSE_PKMN':  #SELECT POKEMON FROM SELECTION SCREEN USING MOUSE
                         i = 1
                         for potrait_rect in potrait_rect_list:
                             if potrait_rect.collidepoint(event.pos):
                                     player1choice,player2choice = set_player_choice(int(str(i)[-1]),player1choice,player2choice)    
-                                    #the int(str(i[-1])) is to take last digit of every number since machamp is 10th                         
+                                    #the int(str(i[-1])) is to take last digit of every number since machamp is 10th        
+                                    button_sound.play()                 
                             i+=1
                         if randomrect.collidepoint(event.pos):
                             player1choice,player2choice = set_player_choice(random.randint(0,9),player1choice,player2choice)
+                            button_sound.play()
                     if game_status == 'PICK_MOVE':
                         move_chosen_no = 0
                         for move_text_rect in move_text_rect_list:
