@@ -290,7 +290,7 @@ def draw_hp_and_text_boxes(currentpokemon,opposingpokemon):
     DISPLAY.blit(Pkmn1HpBoxName, (610, 440))
     DISPLAY.blit(TEXTBOX_image,(0,550))
 
-    statusdict={'Burn':['BRN',RED],'Paralyze':['PAR',YELLOW],'Sleep':['SLP',GRAY],'Freeze':['FRZ','Blue'], 'Immobilise':['ATR', GREEN]}
+    statusdict={'Burn':['BRN',RED],'Paralyze':['PAR',YELLOW],'Sleep':['SLP',GRAY],'Freeze':['FRZ','Blue'], 'Immobilise':['ATR', GREEN],'Flinch':['FLN','Black']}
     if currentpokemon.status:
         status_text = statusdict[currentpokemon.status][0]
         status_color=statusdict[currentpokemon.status][1]
@@ -611,7 +611,7 @@ class Pokemon:
                 return 0, textbox_lines
         
         if self.status == 'Paralyze':
-            if check_chance(0.7):
+            if check_chance(0.6):
                 pass
             else:
                 textbox_lines.append(f'{self.name} could not move due to paralysis.')
@@ -626,13 +626,17 @@ class Pokemon:
                 return 0, textbox_lines
         
         if self.status == 'Freeze':
-            if check_chance(0.4):
+            if check_chance(0.35):
                 textbox_lines.append(f'{self.name} was unfrozen')
                 self.status = None
             else:
                 textbox_lines.append(f'{self.name} is frozen.')
                 return 0,textbox_lines
-
+        
+        if self.status == 'Flinch':
+            textbox_lines.append(f'{self.name} flinched.')
+            self.status = None
+            return 0,textbox_lines
         return True, textbox_lines
 
 class Move:

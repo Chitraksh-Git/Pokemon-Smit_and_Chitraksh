@@ -9,9 +9,9 @@ Earthquake,Ground,120,1,0,0,1,0
 Shadow Ball,Ghost,100,1,0,0,0.9,0
 Air Slash,Flying,90,1,0,0,1,0
 Mega Punch,Fighting,110,1,0,0,1,0
-Surf,Water,80,1,0,0,0.8,0
+Surf,Water,80,1,0,0,1,0
 Thunder Wave,Status,0,1,0,0,0.8,0
-Ice Beam,Ice,100,1,Freeze,0.05,0.8,0
+Ice Beam,Ice,100,1,Freeze,0.1,0.8,0
 Dragon Dance,Status,0,1,0,0,1,0
 Take Down,Normal,110,1,0,0,1,0.3
 Iron Defense,Status,0,1,0,0,1,0
@@ -25,5 +25,6 @@ Calm Mind,Status,0,1,0,0,1,0
 Bulk Up,Status,0,1,0,0,1,0
 Crunch,Dark,80,1,0,0,1,0
 Double-Edge,Normal,120,1,0,0,1,0.3
-Iron Tail,Steel,100,1,0,0,1,0
+Iron Tail,Steel,100,1,Flinch,0.15,1,0
 Giga Impact,Steel,150,1,0,0,1,0
+Steel Wing,Steel,100,1,Flinch,0.15,1,0
