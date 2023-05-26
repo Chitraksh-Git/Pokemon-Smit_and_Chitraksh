@@ -114,7 +114,7 @@ def pkmn_selection_screen(player1choice,player2choice):
     player2text=font60.render(f"Player2:{pkmn_stats.loc[player2choice,'Name']}",0,'White') #1.Text to render
                                                                                             #2.Whether to Anti-Alias
                                                                                             #3.Color of text
-    randomtext=font60.render('Pick Random',0,'Black')
+    randomtext=font60.render('Pick Random',0,'Dark Blue')
     randomrect = randomtext.get_rect(topleft = (600,125))
 
     DISPLAY.blit(blue_sky,(0,0))
@@ -122,8 +122,9 @@ def pkmn_selection_screen(player1choice,player2choice):
     DISPLAY.blit(player1text,(10,100))
     DISPLAY.blit(player2text,(10,150))
     DISPLAY.blit(starttext, (200, 220))
+    pygame.draw.rect(DISPLAY, "Yellow", (randomrect.x -8, randomrect.y -8, randomrect.width +8 , randomrect.height +8), border_radius=5)
     DISPLAY.blit(randomtext, randomrect)
-    pygame.draw.rect(DISPLAY, BLACK, (randomrect.x -4, randomrect.y -4, randomrect.width +4 , randomrect.height +4), width=2, border_radius=5)
+    pygame.draw.rect(DISPLAY, "Dark Blue", (randomrect.x -8, randomrect.y -8, randomrect.width +8 , randomrect.height +8), width=2, border_radius=5)
     
     
     potrait_rect_list=[]
